@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Private Video</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .box {
+      width: 100%;
+      max-width: 900px;
+      background: #1c1c1c;
+      border-radius: 12px;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 28px;
+    }
+
+    p {
+      color: #ccc;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      max-width: 300px;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      margin-top: 10px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #videoSection {
+      display: none;
+      margin-top: 20px;
+    }
+
+    video {
+      width: 100%;
+      max-height: 80vh;
+      border-radius: 10px;
+      background: black;
+    }
+
+    .note {
+      font-size: 14px;
+      color: #999;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Private Video</h1>
+    <p>Enter the password to watch the video.</p>
+
+    <div id="loginSection">
+      <input type="password" id="passwordInput" placeholder="Enter password">
+      <br>
+      <button onclick="checkPassword()">Enter</button>
+    </div>
+
+    <div id="videoSection">
+      <video id="myVideo" controls controlsList="nodownload noplaybackrate">
+        <source src="https://drive.google.com/uc?export=download&id=https://drive.google.com/file/d/1_PB87L1Yps9JgZF0lf3wbN3k7C16MKdD/view?usp=sharing" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <div class="note">Right-click is disabled. Download button is hidden.</div>
+    </div>
+  </div>
+
+  <script>
+    const correctPassword = "1234";
+
+    function checkPassword() {
+      const entered = document.getElementById("passwordInput").value;
+      if (entered === correctPassword) {
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("videoSection").style.display = "block";
+      } else {
+        alert("Wrong password");
+      }
+    }
+
+    document.addEventListener("contextmenu", function(event) {
+      event.preventDefault();
+    });
+
+    document.addEventListener("keydown", function(event) {
+      if (
+        event.key === "F12" ||
+        (event.ctrlKey && event.shiftKey && ["I", "J", "C"].includes(event.key.toUpperCase())) ||
+        (event.ctrlKey && event.key.toUpperCase() === "U")
+      ) {
+        event.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>
