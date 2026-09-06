@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Private Videos</title>
 
   <style>
-
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -19,7 +16,7 @@
       align-items: flex-start;
       min-height: 100vh;
       text-align: center;
-      padding: 30px 20px;
+      padding: 20px;
       box-sizing: border-box;
     }
 
@@ -27,18 +24,18 @@
       width: 100%;
       max-width: 900px;
       background: #1c1c1c;
-      border-radius: 14px;
-      padding: 28px;
+      border-radius: 12px;
+      padding: 24px;
       box-sizing: border-box;
     }
 
     h1 {
       margin-top: 0;
-      font-size: 30px;
+      font-size: 28px;
     }
 
     .warning-text {
-      margin: 12px 0 18px;
+      margin: 12px 0 18px 0;
       font-size: 18px;
       font-weight: bold;
       color: #00ff51;
@@ -69,13 +66,9 @@
       cursor: pointer;
     }
 
-    button:hover {
-      opacity: 0.9;
-    }
-
     #videoSection {
       display: none;
-      margin-top: 25px;
+      margin-top: 20px;
     }
 
     .video-container {
@@ -83,28 +76,31 @@
     }
 
     .video-title {
-      font-size: 20px;
+      font-size: 21px;
       font-weight: bold;
-      margin-bottom: 10px;
-      color: #fff;
+      margin-bottom: 12px;
+      color: white;
     }
 
-    video {
+    iframe {
       width: 100%;
-      max-width: 100%;
+      height: 480px;
       border-radius: 10px;
       background: black;
+      border: none;
     }
 
     .note {
       font-size: 14px;
       color: #999;
-      margin-top: 10px;
+      margin-top: 15px;
     }
+
+    /* ABOUT NADER */
 
     .about-section {
       margin-top: 35px;
-      padding: 28px;
+      padding: 25px;
       background: #252525;
       border-radius: 12px;
       text-align: left;
@@ -137,15 +133,25 @@
       font-weight: bold;
     }
 
-    .error-message {
-      color: #ff5555;
-      margin-top: 12px;
-      display: none;
-    }
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
 
+      .box {
+        padding: 18px;
+      }
+
+      iframe {
+        height: 300px;
+      }
+
+      .about-section {
+        padding: 20px;
+      }
+    }
   </style>
 </head>
-
 
 <body>
 
@@ -164,9 +170,7 @@
     </p>
 
 
-    <!-- ========================= -->
-    <!-- PASSWORD LOGIN -->
-    <!-- ========================= -->
+    <!-- PASSWORD -->
 
     <div id="loginSection">
 
@@ -183,16 +187,10 @@
         Enter
       </button>
 
-      <div id="errorMessage" class="error-message">
-        Incorrect password.
-      </div>
-
     </div>
 
 
-    <!-- ========================= -->
-    <!-- VIDEO SECTION -->
-    <!-- ========================= -->
+    <!-- VIDEOS -->
 
     <div id="videoSection">
 
@@ -205,24 +203,11 @@
           Video 1
         </div>
 
-        <video
-          controls
-          controlsList="nodownload"
-          oncontextmenu="return false;"
-          playsinline
-        >
-
-          <source
-            src="<source
-  src="https://drive.google.com/file/d/1ySDHsKWXPUvpzYmPg4ovQU8EvS0_cIH6/view?usp=sharing"
-  type="video/mp4"
->"
-            type="video/mp4"
-          >
-
-          Your browser does not support video playback.
-
-        </video>
+        <iframe
+          src="https://drive.google.com/file/d/1_PB87L1Yps9JgZF0lf3wbN3k7C16MKdD/preview"
+          allow="autoplay"
+          allowfullscreen>
+        </iframe>
 
       </div>
 
@@ -235,24 +220,11 @@
           Video 2
         </div>
 
-        <video
-          controls
-          controlsList="nodownload"
-          oncontextmenu="return false;"
-          playsinline
-        >
-
-          <source
-            src="<source
-  src="https://drive.google.com/uc?export=download&id=1_PB87L1Yps9JgZF0lf3wbN3k7C16MKdD"
-  type="video/mp4"
->"
-            type="video/mp4"
-          >
-
-          Your browser does not support video playback.
-
-        </video>
+        <iframe
+          src="https://drive.google.com/file/d/1ySDHsKWXPUvpzYmPg4ovQU8EvS0_cIH6/preview"
+          allow="autoplay"
+          allowfullscreen>
+        </iframe>
 
       </div>
 
@@ -262,9 +234,7 @@
       </div>
 
 
-      <!-- ========================= -->
       <!-- ABOUT NADER -->
-      <!-- ========================= -->
 
       <div class="about-section">
 
@@ -277,9 +247,7 @@
         </p>
 
 
-        <h3>
-          Noise & Home Environment
-        </h3>
+        <h3>Noise & Home Environment</h3>
 
         <p>
           Please be mindful of noise and silence around the house. Nader is
@@ -288,9 +256,7 @@
         </p>
 
 
-        <h3>
-          Personal Hygiene
-        </h3>
+        <h3>Personal Hygiene</h3>
 
         <p>
           Personal hygiene is also very important. Please make sure you
@@ -299,9 +265,7 @@
         </p>
 
 
-        <h3>
-          Personal Care & Grooming
-        </h3>
+        <h3>Personal Care & Grooming</h3>
 
         <p>
           If you are comfortable assisting with personal grooming, Nader may
@@ -313,9 +277,7 @@
         </p>
 
 
-        <h3>
-          Stretching & Massage
-        </h3>
+        <h3>Stretching & Massage</h3>
 
         <p>
           Nader can experience muscle pain and spasms, particularly in his
@@ -325,9 +287,7 @@
         </p>
 
 
-        <h3>
-          Communication
-        </h3>
+        <h3>Communication</h3>
 
         <p>
           Please don't be shy about asking Nader anything. If you're unsure
@@ -354,47 +314,24 @@
   </div>
 
 
-  <!-- ========================= -->
   <!-- JAVASCRIPT -->
-  <!-- ========================= -->
 
   <script>
 
     /*
-     * =========================================
-     * YOUR PASSWORD
-     * =========================================
-     *
-     * Change ONLY the password below.
-     *
-     * Example:
-     *
-     * const correctPassword = "1234";
-     *
+     * CHANGE YOUR PASSWORD HERE
      */
 
-    const correctPassword = "5831";
+    const correctPassword = "1122";
 
-
-    /*
-     * =========================================
-     * CHECK PASSWORD
-     * =========================================
-     */
 
     function checkPassword() {
 
-      const passwordInput =
-        document.getElementById("passwordInput");
-
-      const errorMessage =
-        document.getElementById("errorMessage");
-
-      const enteredPassword =
-        passwordInput.value.trim();
+      const entered =
+        document.getElementById("passwordInput").value;
 
 
-      if (enteredPassword === correctPassword) {
+      if (entered === correctPassword) {
 
         document.getElementById("loginSection")
           .style.display = "none";
@@ -402,17 +339,9 @@
         document.getElementById("videoSection")
           .style.display = "block";
 
-        passwordInput.value = "";
+      } else {
 
-        errorMessage.style.display = "none";
-
-      }
-
-      else {
-
-        errorMessage.style.display = "block";
-
-        passwordInput.value = "";
+        alert("Wrong password");
 
       }
 
@@ -420,12 +349,7 @@
 
 
     /*
-     * =========================================
-     * ENTER KEY SUPPORT
-     * =========================================
-     *
-     * Allows the visitor to press Enter
-     * instead of clicking the button.
+     * Allow ENTER key to submit password
      */
 
     document
@@ -442,9 +366,7 @@
 
 
     /*
-     * =========================================
-     * DISABLE RIGHT CLICK
-     * =========================================
+     * Disable right-click
      */
 
     document.addEventListener(
@@ -458,12 +380,7 @@
 
 
     /*
-     * =========================================
-     * DISABLE COMMON DEVELOPER SHORTCUTS
-     * =========================================
-     *
-     * This only discourages casual inspection.
-     * It is NOT real security.
+     * Disable common developer shortcuts
      */
 
     document.addEventListener(
@@ -471,7 +388,6 @@
       function(event) {
 
         if (
-
           event.key === "F12" ||
 
           (
@@ -486,7 +402,6 @@
             event.ctrlKey &&
             event.key.toUpperCase() === "U"
           )
-
         ) {
 
           event.preventDefault();
@@ -499,5 +414,5 @@
   </script>
 
 </body>
-
 </html>
+
