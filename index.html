@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111111">
+  <title>Nader | Support Worker Tutorials</title>
+  <style>
+    :root { color-scheme:dark; --bg:#111; --panel:#1c1c1c; --tile:#222; --line:#333; --green:#00ff51; --text:#f4f6f5; --muted:#b8c2bc; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font-family:Arial,Helvetica,sans-serif; padding:22px 12px 48px; }
+    .box { max-width:960px; margin:auto; padding:clamp(18px,4vw,32px); background:var(--panel); border:1px solid #2b2b2b; border-radius:18px; }
+    h1 { font-size:clamp(24px,4.5vw,32px); text-align:center; margin:0 0 12px; }
+    .warning-text { color:var(--green); font-size:clamp(14px,2vw,17px); font-weight:700; line-height:1.55; text-align:center; max-width:720px; margin:0 auto 26px; }
+    [hidden] { display:none !important; }
+    .login { text-align:center; padding:12px 0 24px; }
+    .login label { display:block; color:var(--muted); margin-bottom:10px; }
+    .login input { width:min(100%,320px); font:inherit; font-size:17px; padding:13px 15px; color:#fff; background:#141414; border:1px solid #555; border-radius:10px; }
+    .login input:focus-visible, button:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
+    button { font:inherit; font-weight:700; cursor:pointer; border:none; border-radius:10px; background:var(--green); color:#052b12; padding:13px 23px; margin-left:8px; }
+    .error { color:#ff9494; min-height:22px; margin:10px 0 0; }
+    .video-container { margin:0 0 28px; }
+    .video-title { font-size:21px; text-align:center; font-weight:700; margin:0 0 12px; }
+    .video-frame { width:100%; aspect-ratio:16 / 9; display:block; border:0; border-radius:12px; background:#050505; }
+
+    /* ---------- A Little About Nader ---------- */
+    .about-section { margin-top:38px; border-top:1px solid var(--line); padding-top:30px; }
+    .about-section h2 { font-size:clamp(23px,4vw,29px); text-align:center; color:var(--green); margin:0 0 10px; }
+    .about-intro { color:var(--muted); line-height:1.6; text-align:center; max-width:640px; margin:0 auto 26px; }
+    .about-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+    .info-card { margin:0; min-width:0; display:flex; flex-direction:column; overflow:hidden; background:var(--tile); border:1px solid var(--line); border-radius:16px; }
+    .scene { position:relative; overflow:hidden; background:#0f171b; border-bottom:1px solid #2c2c2c; contain:paint; }
+    .scene svg { display:block; width:100%; height:auto; aspect-ratio:16 / 9; }
+    figcaption { padding:15px 18px 19px; }
+    figcaption h3 { display:flex; align-items:center; gap:10px; color:var(--text); font-size:17px; line-height:1.3; margin:0 0 8px; }
+    .num { flex:none; display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:rgba(0,255,81,.12); border:1px solid rgba(0,255,81,.5); color:var(--green); font-size:13px; }
+    figcaption p { color:#d3dad6; line-height:1.55; font-size:14.5px; margin:0; }
+    .summary-note { text-align:center; margin:24px 0 0; padding:17px; border-radius:12px; border:1px solid #1f5a33; background:#12261a; color:#eafff0; line-height:1.55; }
+
+    /* ---------- Scene animation engine ---------- */
+    .scene svg * { transform-box:view-box; }
+    .scene .a { animation-duration:var(--d,16s); animation-timing-function:ease-in-out; animation-iteration-count:infinite; animation-fill-mode:both; }
+    .scene .blink { transform-box:fill-box; transform-origin:center; animation:blink 4.6s infinite; }
+    .scene .flow { animation:flow .55s linear infinite; }
+    .scene.paused *, .tab-hidden .scene * { animation-play-state:paused !important; }
+    @keyframes blink { 0%,93%,100% { transform:scaleY(1) } 96% { transform:scaleY(.12) } }
+    @keyframes flow { to { stroke-dashoffset:-24 } }
+
+    @media (max-width:760px) { .about-grid { grid-template-columns:1fr; gap:16px; } }
+    @media (max-width:650px) { body { padding:10px 8px 30px; } .box { padding:16px; } .login button { display:block; margin:12px auto 0; } figcaption { padding:14px 15px 17px; } }
+    /* Reduced motion: every scene is drawn so its resting frame still tells the story.
+       Viewers can opt back in with the "Play animations" button, which only appears for them. */
+    .motion-note { display:none; text-align:center; color:var(--muted); font-size:14px; line-height:1.5; margin:-8px auto 22px; max-width:600px; }
+    .motion-note button { margin:6px 0 0 8px; padding:7px 14px; font-size:13px; background:transparent; color:var(--green); border:1px solid var(--green); }
+    @media (prefers-reduced-motion:reduce) {
+      body:not(.motion-ok) .scene * { animation:none !important; }
+      body:not(.motion-ok) .motion-note { display:block; }
+    }
+  </style>
+</head>
+<body>
+  <main class="box">
+    <h1>Tutorial Videos</h1>
+    <div class="warning-text">Notice: Unauthorized recording, copying, downloading, or sharing of these videos may be investigated and used as evidence in legal proceedings.</div>
+
+    <form class="login" id="loginSection">
+      <label for="passwordInput">Enter the password to view the tutorials</label>
+      <input type="password" id="passwordInput" placeholder="Password" autocomplete="off" required>
+      <button type="submit">Enter</button>
+      <p id="errorMessage" class="error" role="alert" aria-live="polite"></p>
+    </form>
+
+    <section id="videoSection" hidden>
+      <div class="video-container">
+        <h2 class="video-title">Personal Care</h2>
+        <iframe class="video-frame" title="Personal Care Tutorial" data-src="https://drive.google.com/file/d/1_PB87L1Yps9JgZF0lf3wbN3k7C16MKdD/preview" allow="autoplay; fullscreen" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="video-container">
+        <h2 class="video-title">Coffee Machine</h2>
+        <iframe class="video-frame" title="Coffee Machine Tutorial" data-src="https://drive.google.com/file/d/1ySDHsKWXPUvpzYmPg4ovQU8EvS0_cIH6/preview" allow="autoplay; fullscreen" allowfullscreen loading="lazy"></iframe>
+      </div>
+
+      <section class="about-section" aria-labelledby="aboutTitle">
+        <h2 id="aboutTitle">A Little About Nader</h2>
+        <p class="about-intro">Nader is clean, quiet, and respectful. He values a comfortable, hygienic home and support workers who communicate openly.</p>
+        <p class="motion-note">Your device has reduced motion turned on, so these scenes are shown as still pictures.<button type="button" id="motionButton">Play animations</button></p>
+
+        <div class="about-grid">
+          <figure class="info-card">
+            <div class="scene paused">
+              <svg viewBox="0 0 480 270" role="img" font-family="Arial, Helvetica, sans-serif" style="--d:15s" aria-label="Animated scene. First, what to avoid: a support worker bursts through the door, slams it and drops a bag on the table, startling Nader. Then the calm way: the worker opens the door slowly, closes it gently, sets the bag down softly and Nader smiles and says thank you.">
+                <style>
+                  .s1door{animation-name:s1door;transform-origin:383px 0}
+                  @keyframes s1door{0%,6%{transform:scaleX(1)}8%{transform:scaleX(.12)}13%{transform:scaleX(.12);animation-timing-function:ease-in}14.5%{transform:scaleX(1)}15.3%{transform:scaleX(.93)}16.2%,56%{transform:scaleX(1)}62%,71%{transform:scaleX(.12)}79%,100%{transform:scaleX(1)}}
+                  .s1w{animation-name:s1w}
+                  @keyframes s1w{0%,7%{transform:translateX(75px);opacity:0}9%{transform:translateX(70px);opacity:1;animation-timing-function:linear}19%,40%{transform:translateX(0);opacity:1}44%{transform:translateX(0);opacity:0}55%{transform:translateX(75px);opacity:0}58%{transform:translateX(70px);opacity:1;animation-timing-function:linear}68%,79%{transform:translateX(25px);opacity:1}85%,97%{transform:translateX(0);opacity:1}100%{transform:translateX(0);opacity:0}}
+                  .s1box{animation-name:s1box;transform-origin:298px 178px}
+                  @keyframes s1box{0%,7%{transform:translate(81px,12px);opacity:0}9%{transform:translate(76px,12px);opacity:1;animation-timing-function:linear}19%,29%{transform:translate(6px,12px)}30.3%{transform:translate(2px,-12px) rotate(-7deg);animation-timing-function:ease-in}31.3%{transform:translate(0,0)}32.2%{transform:translate(0,-4px)}33%,40%{transform:translate(0,0);opacity:1}44%{transform:translate(0,0);opacity:0}55%{transform:translate(81px,12px);opacity:0}58%{transform:translate(76px,12px);opacity:1;animation-timing-function:linear}68%,79%{transform:translate(31px,12px)}85%{transform:translate(6px,12px)}87%{transform:translate(4px,6px)}90%,97%{transform:translate(0,0);opacity:1}100%{transform:translate(0,0);opacity:0}}
+                  .s1armF{animation-name:s1armF;transform-origin:327px 138px}
+                  @keyframes s1armF{0%,29%{transform:rotate(35deg)}30.3%{transform:rotate(70deg)}31.5%{transform:rotate(58deg)}34%,44%{transform:rotate(10deg)}55%,85%{transform:rotate(35deg)}87%{transform:rotate(43deg)}90%,92%{transform:rotate(53deg)}95%,100%{transform:rotate(6deg)}}
+                  .s1armB{animation-name:s1armB;transform-origin:343px 138px}
+                  @keyframes s1armB{0%,11.5%{transform:rotate(8deg)}12.6%{transform:rotate(-62deg)}13.6%{transform:rotate(-40deg)}16%,69%{transform:rotate(6deg)}71.5%,73%{transform:rotate(-72deg)}77%{transform:rotate(-58deg)}79.5%,100%{transform:rotate(6deg)}}
+                  .s1legF{animation-name:s1legF;transform-origin:331px 186px}
+                  .s1legB{animation-name:s1legB;transform-origin:339px 186px}
+                  @keyframes s1legF{0%,9%{transform:rotate(0)}10.2%{transform:rotate(20deg)}11.4%{transform:rotate(-20deg)}12.6%{transform:rotate(20deg)}13.8%{transform:rotate(-20deg)}15%{transform:rotate(20deg)}16.2%{transform:rotate(-20deg)}17.4%{transform:rotate(20deg)}18.6%{transform:rotate(-8deg)}19.5%,58%{transform:rotate(0)}60%{transform:rotate(14deg)}62%{transform:rotate(-14deg)}64%{transform:rotate(14deg)}66%{transform:rotate(-14deg)}68%,79%{transform:rotate(0)}81%{transform:rotate(13deg)}83%{transform:rotate(-13deg)}85%,100%{transform:rotate(0)}}
+                  @keyframes s1legB{0%,9%{transform:rotate(0)}10.2%{transform:rotate(-20deg)}11.4%{transform:rotate(20deg)}12.6%{transform:rotate(-20deg)}13.8%{transform:rotate(20deg)}15%{transform:rotate(-20deg)}16.2%{transform:rotate(20deg)}17.4%{transform:rotate(-20deg)}18.6%{transform:rotate(8deg)}19.5%,58%{transform:rotate(0)}60%{transform:rotate(-14deg)}62%{transform:rotate(14deg)}64%{transform:rotate(-14deg)}66%{transform:rotate(14deg)}68%,79%{transform:rotate(0)}81%{transform:rotate(-13deg)}83%{transform:rotate(13deg)}85%,100%{transform:rotate(0)}}
+                  .s1nhead{animation-name:s1nhead;transform-origin:128px 134px}
+                  @keyframes s1nhead{0%,14%{transform:translate(0,0) rotate(0)}14.8%{transform:translate(-1px,-4px) rotate(-8deg)}17%{transform:translate(0,-1px) rotate(-3deg)}24%,31%{transform:translate(0,0) rotate(0)}31.8%{transform:translate(-1px,-4px) rotate(-8deg)}38%,86%{transform:translate(0,0) rotate(0)}89%,95%{transform:translate(0,0) rotate(-6deg)}98%,100%{transform:translate(0,0) rotate(0)}}
+                  .s1nO{animation-name:s1nO} .s1nSm{animation-name:s1nSm}
+                  @keyframes s1nO{0%,14%{opacity:0}14.8%,23%{opacity:1}24.5%,31%{opacity:0}31.8%,37%{opacity:1}38.5%,100%{opacity:0}}
+                  @keyframes s1nSm{0%,14%{opacity:1}14.8%,23%{opacity:0}24.5%,31%{opacity:1}31.8%,37%{opacity:0}38.5%,100%{opacity:1}}
+                  .s1book{animation-name:s1book;transform-origin:152px 164px}
+                  @keyframes s1book{0%,14%{transform:translate(0,0) rotate(0)}15%{transform:translate(0,-7px) rotate(-12deg)}18%,31%{transform:translate(0,0) rotate(0)}32%{transform:translate(0,-6px) rotate(-10deg)}35%,100%{transform:translate(0,0) rotate(0)}}
+                  .s1alert{animation-name:s1alert;transform-origin:102px 96px}
+                  @keyframes s1alert{0%,14%{opacity:0;transform:scale(.3)}15%,22%{opacity:1;transform:scale(1)}24%,31%{opacity:0;transform:scale(.3)}32%,37%{opacity:1;transform:scale(1)}39%,100%{opacity:0;transform:scale(.3)}}
+                  .s1frame{animation-name:s1frame;transform-origin:265px 40px}
+                  @keyframes s1frame{0%,14.4%{transform:rotate(0)}15.4%{transform:rotate(8deg)}16.8%{transform:rotate(-6deg)}18.2%{transform:rotate(4deg)}19.6%{transform:rotate(-2deg)}21.5%,31.2%{transform:rotate(0)}32.2%{transform:rotate(4deg)}33.6%{transform:rotate(-3deg)}35.5%,100%{transform:rotate(0)}}
+                  .s1b1{animation-name:s1b1} .s1b2{animation-name:s1b2} .s1b3{animation-name:s1b3}
+                  @keyframes s1b1{0%,6.6%{opacity:0;transform:scale(.4)}7.6%{opacity:1;transform:scale(1)}10.5%{opacity:1;transform:scale(1.08)}12%,100%{opacity:0;transform:scale(1.25)}}
+                  @keyframes s1b2{0%,14.4%{opacity:0;transform:scale(.4)}15.2%{opacity:1;transform:scale(1)}19.5%{opacity:1;transform:scale(1.08)}21.5%,100%{opacity:0;transform:scale(1.25)}}
+                  @keyframes s1b3{0%,31.2%{opacity:0;transform:scale(.4)}32%{opacity:1;transform:scale(1)}35.5%{opacity:1;transform:scale(1.08)}37.5%,100%{opacity:0;transform:scale(1.25)}}
+                  .s1loud{animation-name:s1loud}
+                  @keyframes s1loud{0%,6.6%{opacity:0}7.6%,11%{opacity:1}12.5%,14.3%{opacity:0}15%,21%{opacity:1}23%,31%{opacity:0}31.8%,36%{opacity:1}38%,100%{opacity:0}}
+                  .s1bad{animation-name:s1bad} .s1good{animation-name:s1good}
+                  @keyframes s1bad{0%,6%{opacity:0}8%,40%{opacity:1}42%,100%{opacity:0}}
+                  @keyframes s1good{0%,55%{opacity:0}57%,96%{opacity:1}98%,100%{opacity:0}}
+                  .s1veil{animation-name:s1veil} .s1t1{animation-name:s1t1} .s1t2{animation-name:s1t2}
+                  @keyframes s1veil{0%,4%{opacity:.95}7.5%,40%{opacity:0}44%,52.5%{opacity:.95}56%,96%{opacity:0}99%,100%{opacity:.95}}
+                  @keyframes s1t1{0%,4%{opacity:1}6%,97.5%{opacity:0}99.5%,100%{opacity:1}}
+                  @keyframes s1t2{0%,44%{opacity:0}46%,52%{opacity:1}54%,100%{opacity:0}}
+                  .s1thx{animation-name:s1thx;transform-origin:124px 100px}
+                  @keyframes s1thx{0%,87%{opacity:0;transform:scale(.6)}89.5%,95.5%{opacity:1;transform:scale(1)}97.5%,100%{opacity:0;transform:scale(.9)}}
+                  .s1soft{animation-name:s1soft;transform-origin:441px 138px}
+                  @keyframes s1soft{0%,77.5%{opacity:0;transform:scale(.6)}79.5%{opacity:.9;transform:scale(1)}84%,100%{opacity:0;transform:scale(1.3)}}
+                </style>
+                <defs>
+                  <linearGradient id="s1wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22323b"/><stop offset="1" stop-color="#1a272e"/></linearGradient>
+                  <linearGradient id="s1sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d3550"/><stop offset="1" stop-color="#3e6482"/></linearGradient>
+                  <radialGradient id="s1glow"><stop offset="0" stop-color="#ffd58a" stop-opacity=".32"/><stop offset="1" stop-color="#ffd58a" stop-opacity="0"/></radialGradient>
+                  <linearGradient id="s1hall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d4b40"/><stop offset="1" stop-color="#0d1418"/></linearGradient>
+                </defs>
+
+                <!-- Room -->
+                <rect width="480" height="206" fill="url(#s1wall)"/>
+                <rect y="206" width="480" height="64" fill="#23333a"/>
+                <path d="M0 226h480M0 248h480" stroke="#2a3c44" stroke-width="2"/>
+                <rect y="200" width="480" height="7" fill="#2d3f47"/>
+                <ellipse cx="250" cy="240" rx="150" ry="17" fill="#2c434b"/>
+                <ellipse cx="250" cy="240" rx="128" ry="12" fill="none" stroke="#3a5560" stroke-width="2"/>
+                <!-- Window with curtains -->
+                <rect x="40" y="42" width="92" height="86" rx="4" fill="url(#s1sky)" stroke="#4b6470" stroke-width="4"/>
+                <circle cx="110" cy="64" r="9" fill="#f3efd2" opacity=".9"/><circle cx="114" cy="61" r="8" fill="#26405b"/>
+                <circle cx="62" cy="58" r="1.4" fill="#fff"/><circle cx="80" cy="74" r="1.1" fill="#fff"/><circle cx="96" cy="52" r="1.2" fill="#fff"/>
+                <path d="M86 42v86M40 85h92" stroke="#4b6470" stroke-width="3"/>
+                <path d="M30 36q12 50 2 100h14q8-50-2-100zM142 36q-12 50-2 100h-14q-8-50 2-100z" fill="#3a5a63"/>
+                <rect x="26" y="32" width="120" height="6" rx="3" fill="#53707a"/>
+                <!-- Lamp -->
+                <circle cx="205" cy="96" r="78" fill="url(#s1glow)"/>
+                <path d="M205 92v110" stroke="#7d8b8f" stroke-width="3"/><ellipse cx="205" cy="203" rx="13" ry="3.5" fill="#56656b"/>
+                <path d="M188 92h34l-7-25h-20z" fill="#f0cb84"/>
+                <!-- Picture frame (wobbles when the door slams) -->
+                <g class="a s1frame"><path d="M265 40l-17 12M265 40l17 12" stroke="#9aa7ab" stroke-width="1.2"/><circle cx="265" cy="40" r="2" fill="#c8d2d4"/>
+                  <rect x="240" y="52" width="50" height="36" rx="2" fill="#2a4049" stroke="#b49a72" stroke-width="4"/><path d="M243 85l14-16 9 9 7-6 14 13z" fill="#4f8f74"/><circle cx="276" cy="63" r="4" fill="#f0cb84"/></g>
+                <!-- Side table and plant -->
+                <rect x="262" y="190" width="62" height="7" rx="3" fill="#8a6b52"/><path d="M268 197v33M318 197v33" stroke="#6e5642" stroke-width="5" stroke-linecap="round"/>
+                <path d="M265 190l2-12h10l2 12z" fill="#d6dde0"/><path d="M272 178q-8-10-3-18 5 5 3 18M272 178q8-11 3-19-5 6-3 19" fill="#4fbf7a"/>
+                <!-- Door -->
+                <rect x="378" y="64" width="68" height="142" rx="3" fill="#33454e"/>
+                <rect x="383" y="69" width="58" height="137" fill="url(#s1hall)"/>
+                <g class="a s1door"><rect x="383" y="69" width="58" height="137" fill="#8b6a54"/><rect x="390" y="78" width="44" height="50" rx="2" fill="#9a7760"/><rect x="390" y="138" width="44" height="58" rx="2" fill="#9a7760"/><circle cx="433" cy="140" r="3.5" fill="#f2d38b"/></g>
+                <g class="a s1soft" fill="none" stroke="#00ff51" stroke-width="2.5" stroke-linecap="round" opacity="0"><path d="M450 128q6 10 0 20M457 122q10 16 0 32"/></g>
+
+                <!-- Nader in wheelchair, reading -->
+                <rect x="93" y="140" width="10" height="56" rx="4" fill="#34495a"/>
+                <path d="M98 196h62l10 32M160 228h18" stroke="#a9bcc4" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M106 190q-4-26 2-42q6-12 20-12q12 0 16 12l4 42z" fill="#4a6fa5"/>
+                <path d="M116 140q10 8 20 0" stroke="#3c5d8e" stroke-width="3" fill="none"/>
+                <path d="M124 150q2 16 14 18" stroke="#3e5f92" stroke-width="8" fill="none" stroke-linecap="round"/>
+                <rect x="100" y="186" width="60" height="10" rx="4" fill="#34495a"/>
+                <path d="M116 190h46l4 34" stroke="#2f3f5f" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <ellipse cx="172" cy="228" rx="9" ry="5" fill="#1d232b"/>
+                <circle cx="118" cy="208" r="27" fill="none" stroke="#8fa7b1" stroke-width="5"/>
+                <path d="M118 183v50M93 208h50M100 190l36 36M136 190l-36 36" stroke="#5d7480" stroke-width="1.5"/><circle cx="118" cy="208" r="5" fill="#a9bcc4"/>
+                <circle cx="170" cy="234" r="6" fill="#5d7480"/>
+                <g class="a s1book"><path d="M135 155q9-4 17 0q8-4 17 0v19q-8-3-17 0q-9-3-17 0z" fill="#2f9c6a"/><path d="M137 154q8-4 15 0q7-4 15 0v18q-7-4-15 0q-8-4-15 0z" fill="#eef3f4"/><path d="M152 154v18M140 160h9M140 164h8M155 160h9M155 164h8" stroke="#b8c6c9" stroke-width="1.2"/></g>
+                <path d="M138 148q6 16 16 19" stroke="#4a6fa5" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="155" cy="167" r="4.5" fill="#e2a882"/>
+                <rect x="123" y="126" width="10" height="12" fill="#c98f6d"/>
+                <g class="a s1nhead">
+                  <circle cx="128" cy="116" r="15" fill="#e2a882"/>
+                  <path d="M113 114q0-19 16-19q14 0 16 13q-9-5-18-3q-8 2-14 9z" fill="#221d1b"/><circle cx="120" cy="118" r="3" fill="#d89a74"/>
+                  <ellipse class="blink" cx="134" cy="117" rx="1.8" ry="2.1" fill="#1b1f24"/><ellipse class="blink" cx="141" cy="117" rx="1.8" ry="2.1" fill="#1b1f24"/>
+                  <path d="M131 111h5M138 111h5" stroke="#221d1b" stroke-width="1.6" stroke-linecap="round"/>
+                  <path class="a s1nSm" d="M134 125q4 3.5 8 0" stroke="#7c3b2c" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+                  <ellipse class="a s1nO" cx="138" cy="126" rx="2.6" ry="3.2" fill="#5e2a20" opacity="0"/>
+                </g>
+                <g class="a s1alert" opacity="0"><circle cx="102" cy="96" r="10" fill="#ffb347"/><text x="102" y="101.5" text-anchor="middle" font-size="15" font-weight="700" fill="#2a1600">!</text></g>
+                <g class="a s1thx"><rect x="44" y="66" width="98" height="28" rx="14" fill="#eaf7ef"/><path d="M116 92l9 10-1-11z" fill="#eaf7ef"/><text x="93" y="85" text-anchor="middle" font-size="14" font-weight="700" fill="#11351f">Thank you!</text></g>
+
+                <!-- Support worker (body) -->
+                <g class="a s1w">
+                  <g class="a s1armB"><path d="M343 138v34" stroke="#d9a07c" stroke-width="6" stroke-linecap="round"/><path d="M343 137v9" stroke="#1a9a5f" stroke-width="9" stroke-linecap="round"/></g>
+                  <g class="a s1legB"><path d="M339 186v40" stroke="#26364a" stroke-width="10" stroke-linecap="round"/><ellipse cx="335" cy="230" rx="8" ry="4.5" fill="#151b21"/></g>
+                  <g class="a s1legF"><path d="M331 186v40" stroke="#2f4560" stroke-width="10" stroke-linecap="round"/><ellipse cx="327" cy="230" rx="8" ry="4.5" fill="#151b21"/></g>
+                  <path d="M321 188l2-44q1-12 12-12q11 0 12 12l2 44z" fill="#22b573"/>
+                  <rect x="321" y="180" width="28" height="9" rx="3" fill="#2f4560"/>
+                  <path d="M329 133l6 7 6-7z" fill="#e9f7ef"/><path d="M330 137l5 15 5-15" stroke="#0f6b40" stroke-width="1.5" fill="none"/><rect x="331" y="151" width="8" height="10" rx="1.5" fill="#eef5f1"/>
+                  <rect x="331" y="123" width="8" height="10" fill="#d39a76"/>
+                  <circle cx="334" cy="114" r="13" fill="#e6b08c"/>
+                  <path d="M321 113q0-18 15-18q13 0 14 13l-2 6q-2-9-12-9q-10 0-15 8z" fill="#3a2a22"/><circle cx="349" cy="107" r="5.5" fill="#3a2a22"/><circle cx="341" cy="116" r="2.6" fill="#d39a76"/>
+                  <ellipse class="blink" cx="327" cy="114" rx="1.6" ry="2" fill="#1b1f24"/><ellipse class="blink" cx="333.5" cy="114" rx="1.6" ry="2" fill="#1b1f24"/>
+                  <path d="M326 121q4 3 8 0" stroke="#7a3d2e" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                </g>
+                <!-- Grocery bag -->
+                <g class="a s1box"><path d="M300 166l8-16 4 2-7 15z" fill="#e0b36b"/><path d="M292 167q-4-12 4-16q2 8-1 16z" fill="#4fbf6a"/><path d="M284 190l3-24h22l3 24z" fill="#c9a06a"/><path d="M287 170h22" stroke="#b18852" stroke-width="2"/><path d="M291 167q7-10 14 0" stroke="#a27c4e" stroke-width="2" fill="none"/></g>
+                <!-- Support worker (front arm, over the bag) -->
+                <g class="a s1w"><g class="a s1armF"><path d="M327 138v40" stroke="#e6b08c" stroke-width="6.5" stroke-linecap="round"/><path d="M327 137v9" stroke="#22b573" stroke-width="9.5" stroke-linecap="round"/><circle cx="327" cy="178" r="4.3" fill="#e6b08c"/></g></g>
+
+                <!-- Noise bursts -->
+                <g transform="translate(412 108)"><g class="a s1b1" opacity="0"><path d="M-26 0h-12M26 0h12M0-24v-12M18-18l9-9M-18-18l-9-9M18 18l9 9M-18 18l-9 9" stroke="#ffb347" stroke-width="4" stroke-linecap="round"/></g></g>
+                <g transform="translate(412 120)"><g class="a s1b2" opacity="0"><path d="M-30 0h-12M30 0h12M0-26v-12M21-21l9-9M-21-21l-9-9M21 21l9 9M-21 21l-9 9" stroke="#ff7a45" stroke-width="4" stroke-linecap="round"/><text y="6" text-anchor="middle" font-size="17" font-weight="900" fill="#ffd34d" stroke="#3a1300" stroke-width="3" paint-order="stroke">SLAM!</text></g></g>
+                <g transform="translate(298 146)"><g class="a s1b3" opacity="0"><path d="M-28 0h-10M28 0h10M0-22v-10M18-18l8-8M-18-18l-8-8" stroke="#ff7a45" stroke-width="4" stroke-linecap="round"/><text y="5" text-anchor="middle" font-size="16" font-weight="900" fill="#ffd34d" stroke="#3a1300" stroke-width="3" paint-order="stroke">THUD!</text></g></g>
+
+                <!-- Noise meter -->
+                <rect x="372" y="14" width="94" height="30" rx="8" fill="#0d1417" fill-opacity=".85" stroke="#2f4047"/>
+                <text x="381" y="33" font-size="9.5" font-weight="700" letter-spacing="1" fill="#9fb1b8">NOISE</text>
+                <rect x="416" y="31" width="6" height="6" rx="1.5" fill="#00ff51"/><rect x="425" y="28" width="6" height="9" rx="1.5" fill="#00ff51"/>
+                <g fill="#33434a"><rect x="434" y="25" width="6" height="12" rx="1.5"/><rect x="443" y="22" width="6" height="15" rx="1.5"/><rect x="452" y="19" width="6" height="18" rx="1.5"/></g>
+                <g class="a s1loud" opacity="0"><rect x="434" y="25" width="6" height="12" rx="1.5" fill="#ffd24a"/><rect x="443" y="22" width="6" height="15" rx="1.5" fill="#ff9a3c"/><rect x="452" y="19" width="6" height="18" rx="1.5" fill="#ff4d4d"/></g>
+                <!-- Status chips -->
+                <g class="a s1bad" opacity="0"><rect x="14" y="14" width="150" height="28" rx="14" fill="#3a1517" stroke="#ff5a5a"/><circle cx="29" cy="28" r="8" fill="#ff5a5a"/><path d="M25.5 24.5l7 7M32.5 24.5l-7 7" stroke="#3a1517" stroke-width="2.2" stroke-linecap="round"/><text x="43" y="32.5" font-size="12.5" font-weight="700" fill="#ffd9d9">Loud &amp; careless</text></g>
+                <g class="a s1good"><rect x="14" y="14" width="164" height="28" rx="14" fill="#0e2c19" stroke="#00ff51"/><circle cx="29" cy="28" r="8" fill="#00ff51"/><path d="M25 28l3 3 5.5-6" stroke="#0e2c19" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="43" y="32.5" font-size="12.5" font-weight="700" fill="#d9ffe5">Calm &amp; considerate</text></g>
+                <!-- Chapter cards -->
+                <rect class="a s1veil" width="480" height="270" fill="#0b1013" opacity="0"/>
+                <g class="a s1t1" opacity="0" text-anchor="middle"><text x="240" y="128" font-size="26" font-weight="700" fill="#ff8a8a">What to avoid</text><text x="240" y="154" font-size="14" fill="#f3d3d3">Slammed doors and dropped items</text></g>
+                <g class="a s1t2" opacity="0" text-anchor="middle"><text x="240" y="128" font-size="26" font-weight="700" fill="#00ff51">The calm way</text><text x="240" y="154" font-size="14" fill="#d9ffe5">Close doors gently, set things down softly</text></g>
+              </svg>
+            </div>
+            <figcaption><h3><span class="num">1</span>Noise &amp; Home Environment</h3><p>Keep the home calm and comfortable. Avoid unnecessary noise and be considerate of the environment.</p></figcaption>
+          </figure>
+
+          <figure class="info-card">
+            <div class="scene paused">
+              <svg viewBox="0 0 480 270" role="img" font-family="Arial, Helvetica, sans-serif" style="--d:15s" aria-label="Animated scene: a support worker wets their hands, uses soap from the pump, scrubs for 20 seconds with lather, rinses, turns the tap off, dries their hands on a clean towel and then wipes down the counter.">
+                <style>
+                  .s2L{animation-name:s2L} .s2R{animation-name:s2R}
+                  @keyframes s2L{0%{transform:translate(-40px,30px)}3%,5%{transform:translate(-30px,20px)}7%{transform:translate(14px,0)}9%{transform:translate(12px,4px)}11%{transform:translate(16px,-3px)}13%{transform:translate(14px,0)}15%,22%{transform:translate(0,6px)}25%{transform:translate(0,0)}28%{transform:translate(6px,-4px)}30.5%{transform:translate(-6px,4px)}33%{transform:translate(6px,-4px)}35.5%{transform:translate(-6px,4px)}38%{transform:translate(6px,-4px)}40.5%{transform:translate(-6px,4px)}43%{transform:translate(6px,-4px)}45.5%{transform:translate(-6px,4px)}48%{transform:translate(6px,-4px)}50.5%{transform:translate(-6px,4px)}53%{transform:translate(6px,-4px)}55%,57%{transform:translate(0,0)}59%{transform:translate(14px,0)}61%{transform:translate(12px,5px)}63%{transform:translate(16px,-3px)}65%{transform:translate(12px,4px)}66.5%{transform:translate(14px,0)}68.5%{transform:translate(10px,4px)}71%,73%{transform:translate(-140px,-10px)}76%{transform:translate(10px,0)}78%{transform:translate(4px,-2px)}80%{transform:translate(-4px,2px)}82%{transform:translate(4px,-2px)}83%{transform:translate(10px,0)}86%{transform:translate(-140px,-10px)}89%,100%{transform:translate(-40px,30px)}}
+                  @keyframes s2R{0%{transform:translate(40px,30px)}3%{transform:translate(-52px,-40px)}5%{transform:translate(-52px,-43px)}7%{transform:translate(6px,0)}9%{transform:translate(8px,4px)}11%{transform:translate(4px,-3px)}13%{transform:translate(6px,0)}15%{transform:translate(-52px,-43px)}16%{transform:translate(-52px,-38px)}19%,22%{transform:translate(80px,-26px)}25%{transform:translate(0,0)}28%{transform:translate(-6px,4px)}30.5%{transform:translate(6px,-4px)}33%{transform:translate(-6px,4px)}35.5%{transform:translate(6px,-4px)}38%{transform:translate(-6px,4px)}40.5%{transform:translate(6px,-4px)}43%{transform:translate(-6px,4px)}45.5%{transform:translate(6px,-4px)}48%{transform:translate(-6px,4px)}50.5%{transform:translate(6px,-4px)}53%{transform:translate(-6px,4px)}55%{transform:translate(-52px,-40px)}56.5%{transform:translate(-52px,-43px)}59%{transform:translate(6px,0)}61%{transform:translate(8px,5px)}63%{transform:translate(4px,-3px)}65%{transform:translate(8px,4px)}66%{transform:translate(-52px,-43px)}67.5%{transform:translate(-52px,-38px)}71%,76%{transform:translate(14px,6px)}78%{transform:translate(-4px,2px)}80%{transform:translate(4px,-2px)}82%{transform:translate(-4px,2px)}83.5%,85%{transform:translate(14px,6px)}88%{transform:translate(154px,12px)}90.5%{transform:translate(114px,12px)}93%{transform:translate(154px,12px)}95.5%{transform:translate(114px,12px)}97%{transform:translate(154px,12px)}100%{transform:translate(40px,30px)}}
+                  .s2towel{animation-name:s2towel}
+                  @keyframes s2towel{0%,73%{transform:translate(0,0)}76%{transform:translate(150px,10px)}78%{transform:translate(144px,8px)}80%{transform:translate(136px,12px)}82%{transform:translate(144px,8px)}83%{transform:translate(150px,10px)}86%,100%{transform:translate(0,0)}}
+                  .s2cloth{animation-name:s2cloth}
+                  @keyframes s2cloth{0%,88%{transform:translateX(0)}90.5%{transform:translateX(-40px)}93%{transform:translateX(0)}95.5%{transform:translateX(-40px)}97%,100%{transform:translateX(0)}}
+                  .s2water{animation-name:s2water;transform-origin:254px 122px}
+                  @keyframes s2water{0%,4.5%{opacity:0;transform:scaleY(.05)}6%,15%{opacity:1;transform:scaleY(1)}16%,56.5%{opacity:0;transform:scaleY(.05)}58%,66.5%{opacity:1;transform:scaleY(1)}67.5%,100%{opacity:0;transform:scaleY(.05)}}
+                  .s2lever{animation-name:s2lever;transform-origin:220px 110px}
+                  @keyframes s2lever{0%,4%{transform:rotate(0)}5%,15%{transform:rotate(28deg)}16%,56%{transform:rotate(0)}57%,66.5%{transform:rotate(28deg)}67.5%,100%{transform:rotate(0)}}
+                  .s2pump{animation-name:s2pump} @keyframes s2pump{0%,20%{transform:translateY(0)}20.8%{transform:translateY(5px)}22%,100%{transform:translateY(0)}}
+                  .s2drop{animation-name:s2drop} @keyframes s2drop{0%,20.6%{opacity:0;transform:translate(0,0)}21%{opacity:1;transform:translate(0,0)}22.6%{opacity:1;transform:translate(-3px,14px)}23.2%,100%{opacity:0;transform:translate(-3px,14px)}}
+                  .s2suds{animation-name:s2suds} @keyframes s2suds{0%,26%{opacity:0}31%,57%{opacity:1}63%,100%{opacity:0}}
+                  .s2rise{animation:s2rise 2.2s ease-out infinite} @keyframes s2rise{0%{opacity:0;transform:translateY(0) scale(.6)}25%{opacity:.95}100%{opacity:0;transform:translateY(-46px) scale(1.15)}}
+                  .s2drain{animation-name:s2drain;transform-origin:240px 175px} @keyframes s2drain{0%,58%{opacity:0;transform:scale(1)}60%{opacity:1;transform:scale(1)}67%{opacity:.8;transform:scale(.2)}68%,100%{opacity:0;transform:scale(.2)}}
+                  .s2hl{animation-name:s2hl} @keyframes s2hl{0%,15.5%{transform:translateX(-144px)}17%,25%{transform:translateX(-72px)}27%,55%{transform:translateX(0)}57%,69%{transform:translateX(72px)}71%,85%{transform:translateX(144px)}87%,98%{transform:translateX(216px)}100%{transform:translateX(-144px)}}
+                  .s2timer{animation-name:s2timer} @keyframes s2timer{0%,25%{opacity:0}27%,57%{opacity:1}59%,100%{opacity:0}}
+                  .s2ring{animation-name:s2ring} @keyframes s2ring{0%,27%{stroke-dashoffset:101}55%,100%{stroke-dashoffset:0}}
+                  .s2done{animation-name:s2done} @keyframes s2done{0%,89%{opacity:0;transform:translateY(8px)}91%,98%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(0)}}
+                  .s2spark{animation-name:s2spark;transform-origin:400px 160px} @keyframes s2spark{0%,91%{opacity:0;transform:scale(.4)}94%,98%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.1)}}
+                </style>
+                <defs>
+                  <pattern id="s2tile" width="32" height="32" patternUnits="userSpaceOnUse"><rect width="32" height="32" fill="#1e2f38"/><path d="M0 .5H32M.5 0V32" stroke="#2a3f49"/></pattern>
+                  <linearGradient id="s2counter" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3ecef"/><stop offset="1" stop-color="#b9c8ce"/></linearGradient>
+                  <g id="s2hand">
+                    <rect x="-260" y="-13" width="176" height="26" rx="12" fill="#22b573"/><rect x="-100" y="-14" width="15" height="28" rx="5" fill="#1a9a5f"/>
+                    <rect x="-96" y="-9.5" width="100" height="19" rx="9.5" fill="#e6b08c"/>
+                    <ellipse cx="8" cy="0" rx="15" ry="11.5" fill="#e6b08c"/><rect x="12" y="-10" width="22" height="19" rx="9" fill="#e6b08c"/>
+                    <path d="M17-3.5h13M17 1.5h13" stroke="#c98d6a" stroke-linecap="round"/>
+                    <ellipse cx="4" cy="-11" rx="8" ry="4.2" transform="rotate(-25 4 -11)" fill="#efbd98"/>
+                  </g>
+                </defs>
+
+                <rect width="480" height="270" fill="url(#s2tile)"/>
+                <!-- Towel ring + towel (towel drawn later so it sits over the hand) -->
+                <circle cx="81" cy="104" r="12" fill="none" stroke="#c5d3d8" stroke-width="3"/><rect x="77" y="88" width="8" height="6" rx="2" fill="#93a6ad"/>
+                <!-- Shelf with gloves and spray -->
+                <rect x="384" y="120" width="88" height="5" rx="2" fill="#6e8790"/>
+                <rect x="390" y="98" width="40" height="22" rx="3" fill="#e8f1f4"/><path d="M402 98q8-10 16 0" fill="#8fd0ff"/><rect x="396" y="106" width="28" height="6" rx="2" fill="#5aa9e6"/>
+                <path d="M442 120v-24h14v24z" fill="#6fd3b5"/><path d="M444 96v-6h8l6 4h-6v2z" fill="#e8f1f4"/>
+                <!-- Counter, basin, cabinet -->
+                <rect y="184" width="480" height="86" fill="#24333a"/>
+                <rect x="40" y="194" width="190" height="66" rx="6" fill="#2a3b43"/><rect x="250" y="194" width="190" height="66" rx="6" fill="#2a3b43"/>
+                <rect x="208" y="222" width="14" height="4" rx="2" fill="#7f969e"/><rect x="258" y="222" width="14" height="4" rx="2" fill="#7f969e"/>
+                <rect y="160" width="480" height="25" fill="url(#s2counter)"/><path d="M0 160.5h480" stroke="#f6fafb"/>
+                <ellipse cx="240" cy="171" rx="96" ry="13" fill="#7f9ea8"/><ellipse cx="240" cy="173" rx="84" ry="9" fill="#6f8f9a"/>
+                <ellipse cx="240" cy="171" rx="96" ry="13" fill="none" stroke="#f1f6f7" stroke-width="3"/>
+                <ellipse cx="240" cy="175" rx="7" ry="2.5" fill="#46616a"/>
+                <g class="a s2drain" opacity="0" fill="#f4fbff"><circle cx="212" cy="172" r="2.5"/><circle cx="268" cy="173" r="2"/><circle cx="226" cy="176" r="1.8"/><circle cx="256" cy="169" r="2.2"/></g>
+                <!-- Cup, soap pump, cloth -->
+                <rect x="118" y="138" width="17" height="22" rx="3" fill="#6fd3b5"/><path d="M124 138l-3-18M129 138l3-16" stroke="#e8f1f4" stroke-width="2.5" stroke-linecap="round"/>
+                <rect x="346" y="118" width="30" height="44" rx="7" fill="#4fc3a1"/><rect x="351" y="130" width="20" height="14" rx="3" fill="#e8f7f1"/><path d="M356 137h10" stroke="#4fc3a1" stroke-width="2"/>
+                <rect x="357" y="108" width="8" height="11" fill="#d6e2e6"/>
+                <g class="a s2pump"><rect x="350" y="102" width="22" height="7" rx="3" fill="#e8f1f4"/><path d="M350 105h-10" stroke="#e8f1f4" stroke-width="4" stroke-linecap="round"/></g>
+                <ellipse class="a s2drop" cx="340" cy="111" rx="2.6" ry="3.4" fill="#bff5e2" opacity="0"/>
+                <!-- Tap -->
+                <rect x="210" y="150" width="20" height="12" rx="3" fill="#b9c9cf"/>
+                <path d="M220 152V118q0-12 12-12h16q6 0 6 6v8" fill="none" stroke="#d3e0e4" stroke-width="9" stroke-linecap="round"/>
+                <g class="a s2lever"><path d="M220 108l-19-6" stroke="#e3ecef" stroke-width="5" stroke-linecap="round"/></g><circle cx="220" cy="110" r="6" fill="#c5d3d8"/>
+                <!-- Running water -->
+                <g class="a s2water" opacity="0"><path d="M254 122V168" stroke="#7fd4fb" stroke-width="8" stroke-linecap="round"/><path class="flow" d="M254 124V166" stroke="#eafaff" stroke-width="2.2" stroke-dasharray="6 6" stroke-linecap="round"/><ellipse cx="254" cy="169" rx="12" ry="3" fill="none" stroke="#bfeeff" stroke-width="1.5"/></g>
+                <!-- Hands -->
+                <g class="a s2L"><g transform="translate(212 150) rotate(-30) scale(1.35)"><use href="#s2hand"/><g class="a s2suds" fill="#f4fbff"><circle cx="20" cy="-6" r="5"/><circle cx="28" cy="4" r="4"/><circle cx="10" cy="8" r="4.5"/><circle cx="-6" cy="-4" r="3.5"/></g></g></g>
+                <g class="a s2R"><g transform="translate(268 150) scale(-1 1) rotate(-30) scale(1.35)"><use href="#s2hand"/><g class="a s2suds" fill="#f4fbff"><circle cx="20" cy="-6" r="5"/><circle cx="26" cy="5" r="4.5"/><circle cx="8" cy="9" r="4"/><circle cx="-8" cy="-5" r="3.5"/></g></g></g>
+                <g class="a s2suds" fill="none" stroke="#e6faff" stroke-width="1.5"><circle class="s2rise" cx="226" cy="118" r="4.5"/><circle class="s2rise" style="animation-delay:-.6s" cx="248" cy="112" r="6"/><circle class="s2rise" style="animation-delay:-1.2s" cx="236" cy="104" r="3.5"/><circle class="s2rise" style="animation-delay:-1.7s" cx="262" cy="120" r="4"/><circle class="s2rise" style="animation-delay:-.9s" cx="216" cy="108" r="3"/></g>
+                <!-- Towel -->
+                <g class="a s2towel"><rect x="64" y="110" width="34" height="48" rx="4" fill="#f1f5f2"/><rect x="64" y="146" width="34" height="5" fill="#00c96b"/><path d="M66 112q15 5 30 0" stroke="#d5ddd8" stroke-width="2" fill="none"/></g>
+                <g class="a s2cloth"><rect x="396" y="151" width="36" height="11" rx="3" fill="#00c96b"/><path d="M400 156.5h28" stroke="#5de89f" stroke-width="1.5"/></g>
+                <!-- Sparkles after wiping -->
+                <g class="a s2spark" stroke="#00ff51" stroke-width="2.5" stroke-linecap="round" opacity="0"><path d="M372 140v12M366 146h12M420 136v10M415 141h10M398 128v8M394 132h8"/></g>
+                <!-- Step tracker -->
+                <g font-size="12" font-weight="700" text-anchor="middle" fill="#c9d6db">
+                  <g fill="#101b21" fill-opacity=".9" stroke="#2f4651"><rect x="28" y="12" width="64" height="24" rx="12"/><rect x="100" y="12" width="64" height="24" rx="12"/><rect x="172" y="12" width="64" height="24" rx="12"/><rect x="244" y="12" width="64" height="24" rx="12"/><rect x="316" y="12" width="64" height="24" rx="12"/><rect x="388" y="12" width="64" height="24" rx="12"/></g>
+                  <rect class="a s2hl" x="172" y="12" width="64" height="24" rx="12" fill="#00ff51" fill-opacity=".2" stroke="#00ff51" stroke-width="1.5"/>
+                  <text x="60" y="28.5">1 Wet</text><text x="132" y="28.5">2 Soap</text><text x="204" y="28.5">3 Scrub</text><text x="276" y="28.5">4 Rinse</text><text x="348" y="28.5">5 Dry</text><text x="420" y="28.5">6 Clean</text>
+                </g>
+                <!-- 20 second timer -->
+                <g class="a s2timer"><circle cx="428" cy="68" r="21" fill="#101b21" fill-opacity=".92"/><circle cx="428" cy="68" r="16" fill="none" stroke="#2f4651" stroke-width="4"/>
+                  <circle class="a s2ring" cx="428" cy="68" r="16" fill="none" stroke="#00ff51" stroke-width="4" stroke-linecap="round" stroke-dasharray="101" stroke-dashoffset="0" transform="rotate(-90 428 68)"/>
+                  <text x="428" y="72.5" text-anchor="middle" font-size="12" font-weight="700" fill="#e9fff0">20s</text></g>
+                <!-- Done badge -->
+                <g class="a s2done"><rect x="16" y="228" width="180" height="28" rx="14" fill="#0e2c19" stroke="#00ff51"/><circle cx="31" cy="242" r="8" fill="#00ff51"/><path d="M27 242l3 3 5.5-6" stroke="#0e2c19" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="45" y="246.5" font-size="12.5" font-weight="700" fill="#d9ffe5">Clean hands, clean space</text></g>
+              </svg>
+            </div>
+            <figcaption><h3><span class="num">2</span>Personal Hygiene</h3><p>Maintain excellent personal hygiene and keep Nader's home clean and hygienic.</p></figcaption>
+          </figure>
+
+          <figure class="info-card">
+            <div class="scene paused">
+              <svg viewBox="0 0 480 270" role="img" font-family="Arial, Helvetica, sans-serif" style="--d:15s" aria-label="Animated scene: the blind is lowered and a privacy sign is hung on the door. The support worker puts on gloves, cleans the epilator, and asks Nader if it is okay to start. Nader agrees, and the worker gently epilates his forearm, which rests on a clean towel, checking in on how it feels. The words privacy, consent and respect appear.">
+                <style>
+                  .s3blind{animation-name:s3blind;transform-origin:70px 36px} @keyframes s3blind{0%,2%{transform:scaleY(.12)}8%,95%{transform:scaleY(1)}99%,100%{transform:scaleY(.12)}}
+                  .s3sign{animation-name:s3sign;transform-origin:447px 128px} @keyframes s3sign{0%,3%{opacity:0;transform:rotate(0)}4%{opacity:1;transform:rotate(14deg)}5.5%{transform:rotate(-9deg)}7%{transform:rotate(5deg)}8.5%,95%{opacity:1;transform:rotate(0)}98%,100%{opacity:0;transform:rotate(0)}}
+                  .s3up{transform:rotate(37.6deg);animation-name:s3up;transform-origin:282px 138px}
+                  @keyframes s3up{0%,10%{transform:rotate(-42deg)}11.5%{transform:rotate(-35deg)}13%,18%{transform:rotate(-42deg)}23%,41%{transform:rotate(25deg)}42.5%{transform:rotate(17deg)}50%{transform:rotate(59deg)}56%{transform:rotate(17deg)}64%{transform:rotate(59deg)}70%{transform:rotate(17deg)}71%{transform:rotate(25deg)}75%,100%{transform:rotate(-42deg)}}
+                  .s3fo{transform:rotate(76.8deg);animation-name:s3fo;transform-origin:282px 176px}
+                  @keyframes s3fo{0%,10%{transform:rotate(142deg)}11.5%{transform:rotate(120deg)}13%,18%{transform:rotate(142deg)}23%,41%{transform:rotate(123deg)}42.5%{transform:rotate(113deg)}50%{transform:rotate(40deg)}56%{transform:rotate(113deg)}64%{transform:rotate(40deg)}70%{transform:rotate(113deg)}71%{transform:rotate(123deg)}75%,100%{transform:rotate(142deg)}}
+                  .s3toolH{animation-name:s3toolH} @keyframes s3toolH{0%,18%{opacity:0}18.6%,74.5%{opacity:1}75%,100%{opacity:0}}
+                  .s3toolT{animation-name:s3toolT} @keyframes s3toolT{0%,18%{opacity:1}18.6%,74.5%{opacity:0}75%,100%{opacity:1}}
+                  .s3glove{animation-name:s3glove} @keyframes s3glove{0%,10.5%{fill:#e6b08c}12.5%,78%{fill:#9fc0ff}80%,100%{fill:#e6b08c}}
+                  .s3chipG{animation-name:s3chipG} @keyframes s3chipG{0%,9.5%{opacity:0}11%,18%{opacity:1}19.5%,100%{opacity:0}}
+                  .s3chipT{animation-name:s3chipT} @keyframes s3chipT{0%,19%{opacity:0}20.5%,26%{opacity:1}27.5%,100%{opacity:0}}
+                  .s3spark{animation-name:s3spark;transform-origin:224px 154px} @keyframes s3spark{0%,20%{opacity:0;transform:scale(.4)}22%{opacity:1;transform:scale(1)}25%,100%{opacity:0;transform:scale(1.3)}}
+                  .s3hair{animation-name:s3hair} @keyframes s3hair{0%,42%{opacity:1}50%{opacity:.45}56%{opacity:.4}64%,96%{opacity:0}99%,100%{opacity:1}}
+                  .s3wb1{animation-name:s3wb1;transform-origin:306px 90px} @keyframes s3wb1{0%,25.5%{opacity:0;transform:scale(.7)}27%,34%{opacity:1;transform:scale(1)}35.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s3nb1{animation-name:s3nb1;transform-origin:150px 90px} @keyframes s3nb1{0%,34.5%{opacity:0;transform:scale(.7)}36%,42%{opacity:1;transform:scale(1)}43.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s3wb2{animation-name:s3wb2;transform-origin:306px 90px} @keyframes s3wb2{0%,55.5%{opacity:0;transform:scale(.7)}57%,63%{opacity:1;transform:scale(1)}64.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s3nb2{animation-name:s3nb2;transform-origin:150px 90px} @keyframes s3nb2{0%,63.5%{opacity:0;transform:scale(.7)}65%,70.5%{opacity:1;transform:scale(1)}72%,100%{opacity:0;transform:scale(.95)}}
+                  .s3nhead{animation-name:s3nhead;transform-origin:130px 128px} @keyframes s3nhead{0%,35%{transform:rotate(0)}36.5%{transform:rotate(6deg)}38%{transform:rotate(0)}39.5%{transform:rotate(6deg)}41%,64.5%{transform:rotate(0)}66%{transform:rotate(5deg)}67.5%,100%{transform:rotate(0)}}
+                  .s3v1{animation-name:s3v1} .s3v2{animation-name:s3v2} .s3v3{animation-name:s3v3}
+                  @keyframes s3v1{0%,79%{opacity:0;transform:translateY(6px)}81%,96%{opacity:1;transform:translateY(0)}98%,100%{opacity:0;transform:translateY(0)}}
+                  @keyframes s3v2{0%,82%{opacity:0;transform:translateY(6px)}84%,96%{opacity:1;transform:translateY(0)}98%,100%{opacity:0;transform:translateY(0)}}
+                  @keyframes s3v3{0%,85%{opacity:0;transform:translateY(6px)}87%,96%{opacity:1;transform:translateY(0)}98%,100%{opacity:0;transform:translateY(0)}}
+                </style>
+                <defs><linearGradient id="s3wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#262f3a"/><stop offset="1" stop-color="#1c242d"/></linearGradient></defs>
+
+                <!-- Room -->
+                <rect width="480" height="210" fill="url(#s3wall)"/><rect y="204" width="480" height="66" fill="#252e36"/><rect y="202" width="480" height="5" fill="#2f3a44"/>
+                <path d="M0 230h480M0 254h480" stroke="#2b353e" stroke-width="2"/>
+                <!-- Window and blind -->
+                <rect x="30" y="36" width="80" height="84" rx="4" fill="#3c6380" stroke="#4d5f6c" stroke-width="4"/><path d="M70 36v84M30 78h80" stroke="#4d5f6c" stroke-width="3"/>
+                <g class="a s3blind"><rect x="32" y="36" width="76" height="82" fill="#d9cfbd"/><path d="M32 46h76M32 56h76M32 66h76M32 76h76M32 86h76M32 96h76M32 106h76" stroke="#c4b9a5" stroke-width="1.5"/></g>
+                <rect x="26" y="31" width="88" height="6" rx="3" fill="#6a7884"/>
+                <!-- Wall shelf -->
+                <rect x="332" y="100" width="76" height="5" rx="2" fill="#6a7884"/>
+                <rect x="338" y="90" width="28" height="10" rx="3" fill="#f2f6f4"/><rect x="340" y="81" width="24" height="9" rx="3" fill="#bfeedd"/>
+                <path d="M392 100l2-10h10l2 10z" fill="#d6dde0"/><path d="M399 90q-7-9-2-16 4 5 2 16M399 90q7-10 2-17-4 6-2 17" fill="#4fbf7a"/>
+                <!-- Door + privacy tag -->
+                <rect x="420" y="58" width="60" height="148" fill="#33404b"/><rect x="425" y="63" width="55" height="143" fill="#7a5e4c"/><rect x="431" y="72" width="40" height="52" rx="2" fill="#866852"/>
+                <circle cx="433" cy="128" r="3.2" fill="#f2d38b"/>
+                <g class="a s3sign"><path d="M433 128l14 6" stroke="#cfd8dc" stroke-width="1.2"/><rect x="434" y="134" width="28" height="30" rx="4" fill="#0e2c19" stroke="#00ff51" stroke-width="1.5"/><path d="M443 146v-4a5 5 0 0110 0v4" fill="none" stroke="#00ff51" stroke-width="2"/><rect x="440" y="146" width="16" height="12" rx="2" fill="#00ff51"/><circle cx="448" cy="152" r="1.8" fill="#0e2c19"/></g>
+
+                <!-- Nader in wheelchair -->
+                <rect x="88" y="130" width="10" height="64" rx="4" fill="#34495a"/>
+                <path d="M93 196h62l8 32M155 228h16" stroke="#a9bcc4" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M100 190q-4-28 2-44q6-12 20-12q13 0 17 12l4 44z" fill="#4a6fa5"/>
+                <rect x="95" y="186" width="62" height="10" rx="4" fill="#34495a"/>
+                <path d="M112 192h44l4 34" stroke="#2f3f5f" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="168" cy="230" rx="9" ry="5" fill="#1d232b"/>
+                <circle cx="112" cy="210" r="27" fill="none" stroke="#8fa7b1" stroke-width="5"/><path d="M112 185v50M87 210h50M94 192l36 36M130 192l-36 36" stroke="#5d7480" stroke-width="1.5"/><circle cx="112" cy="210" r="5" fill="#a9bcc4"/>
+                <circle cx="166" cy="236" r="6" fill="#5d7480"/>
+                <path d="M136 146L160 174" stroke="#4a6fa5" stroke-width="11" stroke-linecap="round"/>
+                <rect x="125" y="120" width="10" height="14" fill="#c98f6d"/>
+                <g class="a s3nhead">
+                  <circle cx="130" cy="110" r="15" fill="#e2a882"/>
+                  <path d="M115 108q0-19 16-19q14 0 16 13q-9-5-18-3q-8 2-14 9z" fill="#221d1b"/><circle cx="122" cy="112" r="3" fill="#d89a74"/>
+                  <ellipse class="blink" cx="137" cy="110" rx="1.8" ry="2.1" fill="#1b1f24"/><ellipse class="blink" cx="144" cy="110" rx="1.8" ry="2.1" fill="#1b1f24"/>
+                  <path d="M135 118q4 3.5 8 0" stroke="#7c3b2c" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- Support worker, seated -->
+                <path d="M312 205v31M298 236h28" stroke="#6a7884" stroke-width="4" stroke-linecap="round"/><rect x="290" y="196" width="42" height="8" rx="3" fill="#8a9aa4"/>
+                <path d="M304 192l-24 4 4 36" stroke="#26364a" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="280" cy="235" rx="8" ry="4.5" fill="#151b21"/>
+                <path d="M302 142q2 30-12 46" stroke="#1a9a5f" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="289" cy="190" r="4.5" fill="#d9a07c"/>
+                <path d="M278 196l2-52q1-12 12-12q11 0 12 12l2 52z" fill="#22b573"/>
+                <path d="M286 131l6 7 6-7z" fill="#e9f7ef"/><path d="M287 135l5 15 5-15" stroke="#0f6b40" stroke-width="1.5" fill="none"/><rect x="288" y="149" width="8" height="10" rx="1.5" fill="#eef5f1"/>
+                <path d="M300 194l-30 3 2 35" stroke="#2f4560" stroke-width="11" fill="none" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="268" cy="235" rx="8" ry="4.5" fill="#151b21"/>
+                <rect x="287" y="117" width="8" height="12" fill="#d39a76"/>
+                <circle cx="291" cy="108" r="13" fill="#e6b08c"/>
+                <path d="M278 107q0-18 15-18q13 0 14 13l-2 6q-2-9-12-9q-10 0-15 8z" fill="#3a2a22"/><circle cx="306" cy="101" r="5.5" fill="#3a2a22"/><circle cx="298" cy="110" r="2.6" fill="#d39a76"/>
+                <ellipse class="blink" cx="284" cy="108" rx="1.6" ry="2" fill="#1b1f24"/><ellipse class="blink" cx="290.5" cy="108" rx="1.6" ry="2" fill="#1b1f24"/>
+                <path d="M283 115q4 3 8 0" stroke="#7a3d2e" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+
+                <!-- Over-bed table, towel, Nader's forearm -->
+                <path d="M180 188v48" stroke="#9fb0b6" stroke-width="6"/><ellipse cx="180" cy="237" rx="22" ry="3" fill="#6a7884"/>
+                <rect x="168" y="181" width="146" height="7" rx="3" fill="#d5e0e4"/>
+                <rect x="172" y="176" width="80" height="6" rx="2" fill="#f4f7f5"/><rect x="172" y="179" width="80" height="2" fill="#00c96b"/>
+                <path d="M162 175L232 173" stroke="#e2a882" stroke-width="10" stroke-linecap="round"/><circle cx="160" cy="174" r="7" fill="#3e5f92"/>
+                <ellipse cx="240" cy="173" rx="9" ry="6" fill="#e2a882"/><path d="M236 168q4-4 8 0" stroke="#c98f6d" stroke-width="1.2" fill="none"/>
+                <g class="a s3hair" stroke="#9a6a52" stroke-width=".8" stroke-linecap="round" opacity="0"><path d="M178 171l1.6-2.2M187 172l1.6-2.2M196 171l1.6-2.2M205 171.5l1.6-2.2M214 171l1.6-2.2M223 170.5l1.6-2.2"/></g>
+                <!-- Clean towels and epilator on the table -->
+                <rect x="254" y="173" width="36" height="8" rx="2.5" fill="#f2f6f4"/><rect x="256" y="166" width="32" height="7" rx="2.5" fill="#bfeedd"/>
+                <g class="a s3toolT" opacity="0"><rect x="258" y="159" width="22" height="8" rx="4" fill="#e9f1f4"/><rect x="278" y="158" width="6" height="10" rx="2.5" fill="#7fd4c8"/><circle cx="266" cy="163" r="1.6" fill="#00c96b"/></g>
+                <!-- Worker's working arm (two-joint) holding the epilator -->
+                <g class="a s3up"><path d="M282 138v38" stroke="#e6b08c" stroke-width="7" stroke-linecap="round"/><path d="M282 137v11" stroke="#22b573" stroke-width="10" stroke-linecap="round"/>
+                  <g class="a s3fo"><path d="M282 176v36" stroke="#e6b08c" stroke-width="6.5" stroke-linecap="round"/>
+                    <g class="a s3toolH"><rect x="283" y="209" width="22" height="10" rx="5" fill="#e9f1f4"/><rect x="302" y="207" width="7" height="14" rx="3" fill="#7fd4c8"/><circle cx="291" cy="214" r="1.8" fill="#00c96b"/></g>
+                    <circle class="a s3glove" cx="282" cy="214" r="5" fill="#9fc0ff"/></g></g>
+                <g class="a s3spark" stroke="#00ff51" stroke-width="2.2" stroke-linecap="round" opacity="0"><path d="M224 140v-8M238 150h8M210 150h-8M234 141l5-5M214 141l-5-5"/></g>
+
+                <!-- Prep chips -->
+                <g class="a s3chipG" opacity="0"><rect x="170" y="12" width="140" height="28" rx="14" fill="#13263a" stroke="#9fc0ff"/><path d="M186 33v-9q0-3 2-3v6M188 24v-5q0-2 2-2t2 2v7M192 21q0-2 2-2t2 2v6M196 23q0-2 2-2t2 2v6q0 6-6 6h-3q-3 0-5-3" fill="none" stroke="#9fc0ff" stroke-width="1.6" stroke-linecap="round"/><text x="208" y="30.5" font-size="13" font-weight="700" fill="#e2edff">Gloves on</text></g>
+                <g class="a s3chipT" opacity="0"><rect x="166" y="12" width="148" height="28" rx="14" fill="#0e2c19" stroke="#00ff51"/><circle cx="182" cy="26" r="8" fill="#00ff51"/><path d="M178 26l3 3 5.5-6" stroke="#0e2c19" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="196" y="30.5" font-size="13" font-weight="700" fill="#d9ffe5">Tool cleaned</text></g>
+                <!-- Conversation -->
+                <g class="a s3wb1" opacity="0"><rect x="296" y="48" width="172" height="30" rx="15" fill="#eef4f6"/><path d="M304 76l-2 13 12-13z" fill="#eef4f6"/><text x="382" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#1f3640">Is it okay if I start?</text></g>
+                <g class="a s3nb1" opacity="0"><rect x="34" y="48" width="140" height="30" rx="15" fill="#c7f7d8"/><path d="M146 76l4 13 6-13z" fill="#c7f7d8"/><text x="104" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#11351f">Yes, go ahead.</text></g>
+                <g class="a s3wb2" opacity="0"><rect x="300" y="48" width="164" height="30" rx="15" fill="#eef4f6"/><path d="M304 76l-2 13 12-13z" fill="#eef4f6"/><text x="382" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#1f3640">How does that feel?</text></g>
+                <g class="a s3nb2" opacity="0"><rect x="34" y="48" width="140" height="30" rx="15" fill="#c7f7d8"/><path d="M146 76l4 13 6-13z" fill="#c7f7d8"/><text x="104" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#11351f">All good, thanks.</text></g>
+                <!-- Values -->
+                <g font-size="12.5" font-weight="700" fill="#d9ffe5">
+                  <g class="a s3v1"><rect x="76" y="240" width="100" height="24" rx="12" fill="#0e2c19" stroke="#00ff51"/><rect x="89" y="252" width="10" height="7" rx="1.5" fill="#00ff51"/><path d="M91 252v-3a3 3 0 016 0v3" fill="none" stroke="#00ff51" stroke-width="1.6"/><text x="106" y="256.5">Privacy</text></g>
+                  <g class="a s3v2"><rect x="190" y="240" width="100" height="24" rx="12" fill="#0e2c19" stroke="#00ff51"/><circle cx="205" cy="252" r="6.5" fill="#00ff51"/><path d="M202 252l2.2 2.2 4.3-4.6" stroke="#0e2c19" stroke-width="1.8" fill="none" stroke-linecap="round"/><text x="217" y="256.5">Consent</text></g>
+                  <g class="a s3v3"><rect x="304" y="240" width="100" height="24" rx="12" fill="#0e2c19" stroke="#00ff51"/><path d="M319 257l-5.5-5.5a3.2 3.2 0 015.5-3.3 3.2 3.2 0 015.5 3.3z" fill="#00ff51"/><text x="331" y="256.5">Respect</text></g>
+                </g>
+              </svg>
+            </div>
+            <figcaption><h3><span class="num">3</span>Personal Care &amp; Grooming</h3><p>Occasional grooming assistance, including waxing or epilating, may be needed. Privacy, consent, and professional boundaries always matter.</p></figcaption>
+          </figure>
+
+          <figure class="info-card">
+            <div class="scene paused">
+              <svg viewBox="0 0 480 270" role="img" font-family="Arial, Helvetica, sans-serif" style="--d:15s" aria-label="Animated scene: Nader sits in his wheelchair while a kneeling support worker supports his knee and heel. The worker asks him to say when to stop, slowly straightens his lower leg until Nader says that is good, holds gently, lowers it, then massages his calf. A tension meter falls from orange to green as the muscle relaxes and Nader smiles with his eyes closed.">
+                <style>
+                  .s4shin{animation-name:s4shin;transform-origin:205px 180px} @keyframes s4shin{0%,12%{transform:rotate(0)}26%,40%{transform:rotate(-40deg)}50%,100%{transform:rotate(0)}}
+                  .s4up{transform:rotate(21.2deg);animation-name:s4up;transform-origin:262px 178px}
+                  @keyframes s4up{0%,12%{transform:rotate(33deg)}26%,40%{transform:rotate(-25.1deg)}50%{transform:rotate(33deg)}53%{transform:rotate(21.2deg)}57%{transform:rotate(28.6deg)}61%{transform:rotate(21.2deg)}65%{transform:rotate(28.6deg)}69%{transform:rotate(21.2deg)}73%{transform:rotate(28.6deg)}77%{transform:rotate(21.2deg)}81%{transform:rotate(28.6deg)}84%{transform:rotate(21.2deg)}89%,100%{transform:rotate(33deg)}}
+                  .s4fo{transform:rotate(80deg);animation-name:s4fo;transform-origin:262px 216px}
+                  @keyframes s4fo{0%,12%{transform:rotate(25.1deg)}26%,40%{transform:rotate(110.1deg)}50%{transform:rotate(25.1deg)}53%{transform:rotate(80deg)}57%{transform:rotate(88.6deg)}61%{transform:rotate(80deg)}65%{transform:rotate(88.6deg)}69%{transform:rotate(80deg)}73%{transform:rotate(88.6deg)}77%{transform:rotate(80deg)}81%{transform:rotate(88.6deg)}84%{transform:rotate(80deg)}89%,100%{transform:rotate(25.1deg)}}
+                  .s4calf{animation-name:s4calf} @keyframes s4calf{0%,12%{fill:#ff6a3d;opacity:.6}40%{fill:#ff9f43;opacity:.5}62%{fill:#ffd24a;opacity:.42}80%,95%{fill:#00ff51;opacity:.32}100%{fill:#ff6a3d;opacity:.6}}
+                  .s4zig{animation-name:s4zig} @keyframes s4zig{0%,10%{opacity:1}40%{opacity:.6}58%,96%{opacity:0}100%{opacity:1}}
+                  .s4jit{animation:s4jit .35s steps(2) infinite} @keyframes s4jit{0%{transform:translateX(-1px)}100%{transform:translateX(1px)}}
+                  .s4waves{animation-name:s4waves} @keyframes s4waves{0%,55%{opacity:0}62%,94%{opacity:1}97%,100%{opacity:0}}
+                  .s4ring{animation:s4ring 2.6s ease-out infinite;transform-origin:203px 202px} @keyframes s4ring{0%{opacity:.9;transform:scale(.5)}100%{opacity:0;transform:scale(1.6)}}
+                  .s4bar{transform:scaleX(.18);fill:#00ff51;animation-name:s4bar;transform-origin:354px 0} @keyframes s4bar{0%,12%{transform:scaleX(.92);fill:#ff6a3d}40%{transform:scaleX(.7);fill:#ff9f43}62%{transform:scaleX(.5);fill:#ffd24a}82%,95%{transform:scaleX(.18);fill:#00ff51}100%{transform:scaleX(.92);fill:#ff6a3d}}
+                  .s4mF,.s4brT{animation-name:s4tense} .s4mS,.s4brR{animation-name:s4calm}
+                  @keyframes s4tense{0%,14%{opacity:1}18%,96%{opacity:0}100%{opacity:1}} @keyframes s4calm{0%,14%{opacity:0}18%,96%{opacity:1}100%{opacity:0}}
+                  .s4eC{animation-name:s4eC} .s4eO{animation-name:s4eO}
+                  @keyframes s4eC{0%,84%{opacity:0}86%,95%{opacity:1}97%,100%{opacity:0}} @keyframes s4eO{0%,84%{opacity:1}86%,95%{opacity:0}97%,100%{opacity:1}}
+                  .s4wb1{animation-name:s4wb1;transform-origin:284px 94px} @keyframes s4wb1{0%,3.5%{opacity:0;transform:scale(.7)}5%,12%{opacity:1;transform:scale(1)}13.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s4nb1{animation-name:s4nb1;transform-origin:150px 88px} @keyframes s4nb1{0%,23%{opacity:0;transform:scale(.7)}24.5%,33%{opacity:1;transform:scale(1)}34.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s4hold{animation-name:s4hold} @keyframes s4hold{0%,27%{opacity:0}29%,40%{opacity:1}42%,100%{opacity:0}}
+                  .s4breath{animation:s4breath 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center} @keyframes s4breath{0%,100%{transform:scale(.55)}50%{transform:scale(1)}}
+                  .s4wb2{animation-name:s4wb2;transform-origin:284px 94px} @keyframes s4wb2{0%,60.5%{opacity:0;transform:scale(.7)}62%,69%{opacity:1;transform:scale(1)}70.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s4nb2{animation-name:s4nb2;transform-origin:150px 88px} @keyframes s4nb2{0%,70%{opacity:0;transform:scale(.7)}71.5%,79%{opacity:1;transform:scale(1)}80.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s4done{animation-name:s4done} @keyframes s4done{0%,82%{opacity:0;transform:translateY(8px)}84.5%,95%{opacity:1;transform:translateY(0)}97%,100%{opacity:0;transform:translateY(0)}}
+                </style>
+                <defs><linearGradient id="s4wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#20303a"/><stop offset="1" stop-color="#1a262e"/></linearGradient>
+                  <radialGradient id="s4sun"><stop offset="0" stop-color="#9fe8c0" stop-opacity=".16"/><stop offset="1" stop-color="#9fe8c0" stop-opacity="0"/></radialGradient></defs>
+
+                <!-- Room -->
+                <rect width="480" height="212" fill="url(#s4wall)"/><rect y="206" width="480" height="64" fill="#24343b"/><rect y="204" width="480" height="5" fill="#2e3f47"/>
+                <path d="M0 232h480M0 254h480" stroke="#2a3c44" stroke-width="2"/>
+                <rect x="20" y="40" width="70" height="92" rx="4" fill="#3d6a7e" stroke="#4b6470" stroke-width="4"/><path d="M55 40v92M20 86h70" stroke="#4b6470" stroke-width="3"/><circle cx="55" cy="86" r="80" fill="url(#s4sun)"/>
+                <rect x="372" y="128" width="90" height="5" rx="2" fill="#5d727b"/><path d="M386 128l2-12h12l2 12z" fill="#d6dde0"/><path d="M394 116q-9-11-3-20 5 6 3 20M394 116q9-12 3-21-5 7-3 21" fill="#4fbf7a"/><rect x="420" y="108" width="12" height="20" rx="2" fill="#5aa9e6"/><rect x="434" y="112" width="12" height="16" rx="2" fill="#e8c27a"/>
+                <ellipse cx="230" cy="244" rx="170" ry="16" fill="#2b424a"/>
+                <rect x="244" y="232" width="66" height="10" rx="5" fill="#3c6b8f"/>
+
+                <!-- Nader in wheelchair -->
+                <rect x="112" y="118" width="10" height="64" rx="4" fill="#34495a"/>
+                <path d="M117 184h62l8 30M196 226h18" stroke="#a9bcc4" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M124 178q-4-28 2-44q6-12 20-12q13 0 17 12l4 44z" fill="#4a6fa5"/>
+                <path d="M150 136q4 22 18 34" stroke="#3e5f92" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="170" cy="172" r="4.5" fill="#d89a74"/>
+                <rect x="118" y="174" width="64" height="10" rx="4" fill="#34495a"/>
+                <path d="M150 180L200 178" stroke="#2a3956" stroke-width="13" stroke-linecap="round"/><path d="M200 178L204 222" stroke="#c98f6d" stroke-width="10" stroke-linecap="round"/><ellipse cx="210" cy="225" rx="9" ry="4.5" fill="#cfd8dc"/>
+                <circle cx="140" cy="198" r="28" fill="none" stroke="#8fa7b1" stroke-width="5"/><path d="M140 172v52M114 198h52M121 179l38 38M159 179l-38 38" stroke="#5d7480" stroke-width="1.5"/><circle cx="140" cy="198" r="5" fill="#a9bcc4"/>
+                <circle cx="190" cy="234" r="6" fill="#5d7480"/>
+                <path d="M150 182L205 180" stroke="#34466b" stroke-width="14" stroke-linecap="round"/>
+                <rect x="143" y="114" width="10" height="12" fill="#c98f6d"/>
+                <circle cx="148" cy="106" r="15" fill="#e2a882"/>
+                <path d="M133 104q0-19 16-19q14 0 16 13q-9-5-18-3q-8 2-14 9z" fill="#221d1b"/><circle cx="140" cy="108" r="3" fill="#d89a74"/>
+                <g class="a s4eO" opacity="0"><ellipse class="blink" cx="155" cy="105" rx="1.8" ry="2.1" fill="#1b1f24"/><ellipse class="blink" cx="162" cy="105" rx="1.8" ry="2.1" fill="#1b1f24"/></g>
+                <path class="a s4eC" d="M152.5 105.5q2.5 2 5 0M159.5 105.5q2.5 2 5 0" stroke="#1b1f24" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                <path class="a s4brT" d="M151 98l6 2M159 100l6-2" stroke="#221d1b" stroke-width="1.6" stroke-linecap="round" opacity="0"/>
+                <path class="a s4brR" d="M151 99.5q3-2 6 0M159 99.5q3-2 6 0" stroke="#221d1b" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                <path class="a s4mF" d="M154 114h8" stroke="#7c3b2c" stroke-width="1.7" stroke-linecap="round" opacity="0"/>
+                <path class="a s4mS" d="M153 113q4.5 4 9 0" stroke="#7c3b2c" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+
+                <!-- Nader's supported lower leg (rotates at the knee) -->
+                <g class="a s4shin">
+                  <path d="M205 181L209 226" stroke="#e2a882" stroke-width="11.5" stroke-linecap="round"/><circle cx="205" cy="181" r="6.5" fill="#e2a882"/>
+                  <ellipse class="a s4calf" cx="203" cy="202" rx="7.5" ry="15" fill="#00ff51" opacity=".32"/>
+                  <g class="a s4zig" opacity="0"><path class="s4jit" d="M192 190l-4 3 4 3-4 3 4 3-4 3 4 3" stroke="#ff7a45" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+                  <path d="M205 224q2 8 12 8h7q4 0 4-4t-6-5l-14-3z" fill="#e9eef0"/>
+                </g>
+                <g class="a s4waves" fill="none" stroke="#00ff51" stroke-width="1.6"><ellipse class="s4ring" cx="203" cy="202" rx="12" ry="20"/><ellipse class="s4ring" style="animation-delay:-1.3s" cx="203" cy="202" rx="12" ry="20"/></g>
+
+                <!-- Kneeling support worker -->
+                <path d="M276 212l-14 24 36 3" stroke="#26364a" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M258 214l2-38q1-12 12-12q11 0 12 12l2 38z" fill="#22b573"/>
+                <path d="M266 163l6 7 6-7z" fill="#e9f7ef"/><path d="M267 167l5 14 5-14" stroke="#0f6b40" stroke-width="1.5" fill="none"/><rect x="268" y="180" width="8" height="10" rx="1.5" fill="#eef5f1"/>
+                <path d="M270 212l-14 24 38 2" stroke="#2f4560" stroke-width="11" fill="none" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="298" cy="236" rx="6" ry="4" fill="#151b21"/>
+                <rect x="267" y="155" width="8" height="11" fill="#d39a76"/>
+                <circle cx="271" cy="147" r="13" fill="#e6b08c"/>
+                <path d="M258 146q0-18 15-18q13 0 14 13l-2 6q-2-9-12-9q-10 0-15 8z" fill="#3a2a22"/><circle cx="286" cy="140" r="5.5" fill="#3a2a22"/><circle cx="278" cy="149" r="2.6" fill="#d39a76"/>
+                <ellipse class="blink" cx="264" cy="147" rx="1.6" ry="2" fill="#1b1f24"/><ellipse class="blink" cx="270.5" cy="147" rx="1.6" ry="2" fill="#1b1f24"/>
+                <path d="M263 154q4 3 8 0" stroke="#7a3d2e" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                <!-- Far hand steadies the knee -->
+                <path d="M280 178q-28 22-64 6" stroke="#d9a07c" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M280 177q-4 6-9 9" stroke="#1a9a5f" stroke-width="9" stroke-linecap="round"/><circle cx="214" cy="184" r="4.8" fill="#d9a07c"/>
+                <!-- Near arm (two joints) cups the heel, then massages the calf -->
+                <g class="a s4up"><path d="M262 178v38" stroke="#e6b08c" stroke-width="7" stroke-linecap="round"/><path d="M262 177v10" stroke="#22b573" stroke-width="10" stroke-linecap="round"/>
+                  <g class="a s4fo"><path d="M262 216v36" stroke="#e6b08c" stroke-width="6.5" stroke-linecap="round"/><ellipse cx="262" cy="254" rx="5.5" ry="4.6" fill="#e6b08c"/></g></g>
+
+                <!-- Tension meter -->
+                <rect x="344" y="12" width="124" height="38" rx="9" fill="#0d1417" fill-opacity=".88" stroke="#2f4047"/>
+                <text x="354" y="27" font-size="10" font-weight="700" letter-spacing=".5" fill="#9fb1b8">MUSCLE TENSION</text>
+                <rect x="354" y="34" width="104" height="8" rx="4" fill="#26343a"/><rect class="a s4bar" x="354" y="34" width="104" height="8" rx="4"/>
+                <!-- Conversation and guidance -->
+                <g class="a s4wb1" opacity="0"><rect x="276" y="56" width="168" height="30" rx="15" fill="#eef4f6"/><path d="M286 84l-4 12 14-12z" fill="#eef4f6"/><text x="360" y="76" text-anchor="middle" font-size="13" font-weight="700" fill="#1f3640">Tell me when to stop.</text></g>
+                <g class="a s4nb1" opacity="0"><rect x="16" y="46" width="178" height="30" rx="15" fill="#c7f7d8"/><path d="M146 74l4 14 8-14z" fill="#c7f7d8"/><text x="105" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#11351f">That's good, hold there.</text></g>
+                <g class="a s4hold" opacity="0"><rect x="164" y="12" width="170" height="28" rx="14" fill="#0e2c19" stroke="#00ff51"/><circle cx="182" cy="26" r="8" fill="none" stroke="#00ff51" stroke-width="1.5"/><circle class="s4breath" cx="182" cy="26" r="6" fill="#00ff51" fill-opacity=".7"/><text x="196" y="30.5" font-size="12.5" font-weight="700" fill="#d9ffe5">Hold gently, breathe</text></g>
+                <g class="a s4wb2" opacity="0"><rect x="276" y="56" width="176" height="30" rx="15" fill="#eef4f6"/><path d="M286 84l-4 12 14-12z" fill="#eef4f6"/><text x="364" y="76" text-anchor="middle" font-size="13" font-weight="700" fill="#1f3640">Is this pressure okay?</text></g>
+                <g class="a s4nb2" opacity="0"><rect x="16" y="46" width="160" height="30" rx="15" fill="#c7f7d8"/><path d="M146 74l4 14 8-14z" fill="#c7f7d8"/><text x="96" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#11351f">Perfect, thank you.</text></g>
+                <g class="a s4done"><rect x="300" y="236" width="164" height="26" rx="13" fill="#0e2c19" stroke="#00ff51"/><circle cx="314" cy="249" r="7.5" fill="#00ff51"/><path d="M310.5 249l2.7 2.7 5-5.5" stroke="#0e2c19" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="327" y="253.5" font-size="12.5" font-weight="700" fill="#d9ffe5">Muscles relaxed</text></g>
+              </svg>
+            </div>
+            <figcaption><h3><span class="num">4</span>Stretching &amp; Massage</h3><p>Gentle leg stretching and massage may help with muscle discomfort and spasms. Follow Nader's instructions and agreed care plan.</p></figcaption>
+          </figure>
+
+          <figure class="info-card">
+            <div class="scene paused">
+              <svg viewBox="0 0 480 270" role="img" font-family="Arial, Helvetica, sans-serif" style="--d:15s" aria-label="Animated scene: a support worker at the coffee machine is unsure which settings to use, so they turn and ask Nader how he likes his coffee. Nader explains: strong, a splash of milk and no sugar. The worker says thanks, presses the strong and milk buttons, and brings the coffee to Nader, who says perfect, thank you.">
+                <style>
+                  .s5walk{animation-name:s5walk} @keyframes s5walk{0%{transform:translateX(24px);opacity:0}3%,80%{transform:translateX(24px);opacity:1}89%,96%{transform:translateX(-150px);opacity:1}99%,100%{transform:translateX(-150px);opacity:0}}
+                  .s5flip{animation-name:s5flip;transform-origin:350px 0} @keyframes s5flip{0%,14%{transform:scaleX(-1)}15.5%,66%{transform:scaleX(1)}67.5%,79.8%{transform:scaleX(-1)}81.3%,100%{transform:scaleX(1)}}
+                  .s5aF{animation-name:s5aF;transform-origin:342px 138px}
+                  @keyframes s5aF{0%{transform:rotate(0)}2%{transform:rotate(150deg)}4%{transform:rotate(165deg)}6%{transform:rotate(150deg)}8%{transform:rotate(165deg)}10%{transform:rotate(150deg)}12%{transform:rotate(165deg)}14%{transform:rotate(150deg)}15.5%{transform:rotate(0)}19%{transform:rotate(28deg)}23%{transform:rotate(38deg)}27%{transform:rotate(24deg)}31%{transform:rotate(36deg)}34.5%,56.5%{transform:rotate(0)}58.5%,65%{transform:rotate(120deg)}66.5%{transform:rotate(0)}68%{transform:rotate(155deg)}69.5%{transform:rotate(150deg)}70.5%{transform:rotate(139deg)}72%{transform:rotate(134deg)}73.5%,78%{transform:rotate(20deg)}79%{transform:rotate(75deg)}81%,89%{transform:rotate(40deg)}90.5%{transform:rotate(55deg)}92%{transform:rotate(10deg)}100%{transform:rotate(0)}}
+                  .s5mugB{animation-name:s5mugB;transform-origin:342px 176px} @keyframes s5mugB{0%,79.3%{opacity:0;transform:rotate(-75deg)}79.6%{opacity:1;transform:rotate(-75deg)}81%,89%{opacity:1;transform:rotate(-40deg)}90.5%{opacity:1;transform:rotate(-55deg)}90.8%,100%{opacity:0;transform:rotate(-55deg)}}
+                  .s5thumb{animation-name:s5thumb} @keyframes s5thumb{0%,58%{opacity:0}58.5%,65%{opacity:1}66%,100%{opacity:0}}
+                  .s5lF{animation-name:s5lF;transform-origin:346px 186px} .s5lB{animation-name:s5lB;transform-origin:354px 186px}
+                  @keyframes s5lF{0%,80%{transform:rotate(0)}80.8%{transform:rotate(18deg)}82%{transform:rotate(-18deg)}83.2%{transform:rotate(18deg)}84.4%{transform:rotate(-18deg)}85.6%{transform:rotate(18deg)}86.8%{transform:rotate(-18deg)}88%{transform:rotate(10deg)}89%,100%{transform:rotate(0)}}
+                  @keyframes s5lB{0%,80%{transform:rotate(0)}80.8%{transform:rotate(-18deg)}82%{transform:rotate(18deg)}83.2%{transform:rotate(-18deg)}84.4%{transform:rotate(18deg)}85.6%{transform:rotate(-18deg)}86.8%{transform:rotate(18deg)}88%{transform:rotate(-10deg)}89%,100%{transform:rotate(0)}}
+                  .s5whead{animation-name:s5whead;transform-origin:349px 128px} @keyframes s5whead{0%{transform:rotate(0)}3%,13%{transform:rotate(-7deg)}15%,58%{transform:rotate(0)}59.5%{transform:rotate(6deg)}61%{transform:rotate(0)}62.5%{transform:rotate(6deg)}64%,100%{transform:rotate(0)}}
+                  .s5wTalk{animation-name:s5wTalk} @keyframes s5wTalk{0%,17%{opacity:0}18%,34%{opacity:1}35%,57.5%{opacity:0}58.5%,65.5%{opacity:1}66.5%,100%{opacity:0}}
+                  .s5nTalk{animation-name:s5nTalk} @keyframes s5nTalk{0%,37.5%{opacity:0}38.5%,55.5%{opacity:1}56.5%,90.5%{opacity:0}91.5%,96.5%{opacity:1}97.5%,100%{opacity:0}}
+                  .s5flap{animation:s5flap .28s steps(2) infinite;transform-box:fill-box;transform-origin:center} @keyframes s5flap{0%{transform:scaleY(.35)}100%{transform:scaleY(1)}}
+                  .s5qs{animation-name:s5qs} @keyframes s5qs{0%,2%{opacity:0}3.5%,13%{opacity:1}14.5%,100%{opacity:0}}
+                  .s5bob{animation:s5bob 1.6s ease-in-out infinite} @keyframes s5bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+                  .s5nArm{animation-name:s5nArm;transform-origin:118px 148px} @keyframes s5nArm{0%,37.5%{transform:rotate(0)}40%{transform:rotate(-38deg)}43%{transform:rotate(-58deg)}46%{transform:rotate(-35deg)}49%{transform:rotate(-58deg)}52%{transform:rotate(-38deg)}55.5%,88.5%{transform:rotate(0)}90.5%,97%{transform:rotate(-50deg)}100%{transform:rotate(0)}}
+                  .s5bStr{animation-name:s5bStr} @keyframes s5bStr{0%,68.5%{opacity:0}69%,80%{opacity:1}82%,100%{opacity:0}}
+                  .s5bMilk{animation-name:s5bMilk} @keyframes s5bMilk{0%,71%{opacity:0}71.5%,80%{opacity:1}82%,100%{opacity:0}}
+                  .s5pour{animation-name:s5pour;transform-origin:412px 124px} @keyframes s5pour{0%,73%{opacity:0;transform:scaleY(.1)}74%,77.5%{opacity:1;transform:scaleY(1)}78.5%,100%{opacity:0;transform:scaleY(.1)}}
+                  .s5milk{animation-name:s5milk} @keyframes s5milk{0%,76%{opacity:0}76.5%,77.8%{opacity:1}78.5%,100%{opacity:0}}
+                  .s5fill{animation-name:s5fill} @keyframes s5fill{0%,74.5%{opacity:0}76%,100%{opacity:1}}
+                  .s5swirl{animation-name:s5swirl} @keyframes s5swirl{0%,77.3%{opacity:0}78%,100%{opacity:1}}
+                  .s5mugA{animation-name:s5mugA} @keyframes s5mugA{0%,79.3%{opacity:1}79.6%,100%{opacity:0}}
+                  .s5mugC{animation-name:s5mugC} @keyframes s5mugC{0%,90.6%{opacity:0}91%,96%{opacity:1}98.5%,100%{opacity:0}}
+                  .s5wb1{animation-name:s5wb1;transform-origin:345px 72px} @keyframes s5wb1{0%,16%{opacity:0;transform:scale(.7)}17.5%,34.5%{opacity:1;transform:scale(1)}36%,100%{opacity:0;transform:scale(.95)}}
+                  .s5nb{animation-name:s5nb;transform-origin:126px 86px} @keyframes s5nb{0%,36.5%{opacity:0;transform:scale(.7)}38%,56%{opacity:1;transform:scale(1)}57.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s5wb2{animation-name:s5wb2;transform-origin:345px 72px} @keyframes s5wb2{0%,56.5%{opacity:0;transform:scale(.7)}58%,66%{opacity:1;transform:scale(1)}67.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s5nb2{animation-name:s5nb2;transform-origin:126px 86px} @keyframes s5nb2{0%,90%{opacity:0;transform:scale(.7)}91.5%,97%{opacity:1;transform:scale(1)}98.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s5chip{animation-name:s5chip} @keyframes s5chip{0%,91%{opacity:0;transform:translateY(8px)}93%,98%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(0)}}
+                </style>
+                <defs>
+                  <linearGradient id="s5wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#24303a"/><stop offset="1" stop-color="#1b252d"/></linearGradient>
+                  <radialGradient id="s5glow"><stop offset="0" stop-color="#ffd58a" stop-opacity=".26"/><stop offset="1" stop-color="#ffd58a" stop-opacity="0"/></radialGradient>
+                  <g id="s5mug"><rect x="-8" y="-9" width="16" height="18" rx="3" fill="#f1f5f2"/><path d="M8-4q6 0 6 5t-6 5" stroke="#f1f5f2" stroke-width="2.5" fill="none"/><ellipse cx="0" cy="-8" rx="6.5" ry="1.8" fill="#6b3f22"/><path d="M-3-8q3-1.5 6 0" stroke="#e8d2b0" stroke-width="1.3" fill="none"/></g>
+                </defs>
+
+                <!-- Room -->
+                <rect width="480" height="212" fill="url(#s5wall)"/><rect y="206" width="480" height="64" fill="#24323a"/><rect y="204" width="480" height="5" fill="#2e3d45"/>
+                <path d="M0 232h480M0 254h480" stroke="#2a3a42" stroke-width="2"/>
+                <ellipse cx="220" cy="244" rx="160" ry="15" fill="#2b4048"/>
+                <path d="M240 0v34" stroke="#7d8b8f" stroke-width="2"/><path d="M226 46h28l-5-13h-18z" fill="#f0cb84"/><circle cx="240" cy="54" r="80" fill="url(#s5glow)"/>
+                <path d="M262 206l3-22h20l3 22z" fill="#7b8f98"/><path d="M275 184q-14-24-4-46 10 18 4 46M275 184q16-22 8-48-12 20-8 48M275 184q-22-10-26-32 18 4 26 32" fill="#3fa66a"/>
+                <!-- Kitchen counter and coffee machine -->
+                <rect x="372" y="160" width="108" height="46" fill="#33434b"/><rect x="380" y="168" width="44" height="32" rx="4" fill="#3b4c55"/><rect x="430" y="168" width="44" height="32" rx="4" fill="#3b4c55"/>
+                <rect x="368" y="155" width="112" height="6" rx="2" fill="#c9d6db"/>
+                <rect x="386" y="74" width="52" height="10" rx="3" fill="#3a4248"/><rect x="380" y="82" width="64" height="74" rx="8" fill="#2b3035" stroke="#444c53"/>
+                <rect x="388" y="92" width="48" height="20" rx="5" fill="#14181b"/>
+                <g fill="#2a3136" stroke="#4b555c"><circle cx="398" cy="102" r="5.5"/><circle cx="412" cy="102" r="5.5"/><circle cx="426" cy="102" r="5.5"/></g>
+                <ellipse cx="398" cy="102" rx="2.4" ry="3.2" fill="#b0773f"/><path d="M412 98.5q-3 3.5-3 5a3 3 0 006 0q0-1.5-3-5z" fill="#f1f5f2"/><rect x="424" y="100" width="4.5" height="4.5" rx=".8" fill="#f1f5f2"/>
+                <circle class="a s5bStr" cx="398" cy="102" r="7" fill="#00ff51" fill-opacity=".22" stroke="#00ff51" stroke-width="2" opacity="0"/>
+                <circle class="a s5bMilk" cx="412" cy="102" r="7" fill="#00ff51" fill-opacity=".22" stroke="#00ff51" stroke-width="2" opacity="0"/>
+                <rect x="406" y="116" width="12" height="7" rx="2" fill="#59636b"/><rect x="394" y="154" width="36" height="3" fill="#59636b"/>
+                <path class="a s5pour" d="M412 124v13" stroke="#6b3f22" stroke-width="3" stroke-linecap="round" opacity="0"/>
+                <path class="a s5milk" d="M413.5 124v13" stroke="#f1e6d2" stroke-width="1.6" stroke-linecap="round" opacity="0"/>
+                <g class="a s5mugA"><rect x="404" y="137" width="16" height="18" rx="3" fill="#f1f5f2"/><path d="M420 142q6 0 6 5t-6 5" stroke="#f1f5f2" stroke-width="2.5" fill="none"/><ellipse cx="412" cy="138" rx="6.5" ry="1.8" fill="#9aa5a9"/><ellipse class="a s5fill" cx="412" cy="138" rx="6.5" ry="1.8" fill="#6b3f22" opacity="0"/><path class="a s5swirl" d="M409 138q3-1.5 6 0" stroke="#e8d2b0" stroke-width="1.3" fill="none" opacity="0"/></g>
+
+                <!-- Nader -->
+                <rect x="72" y="124" width="10" height="64" rx="4" fill="#34495a"/>
+                <path d="M77 190h62l8 30M147 226h18" stroke="#a9bcc4" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M84 184q-4-28 2-44q6-12 20-12q13 0 17 12l4 44z" fill="#4a6fa5"/>
+                <path d="M104 140q2 22 16 34" stroke="#3e5f92" stroke-width="9" fill="none" stroke-linecap="round"/>
+                <rect x="78" y="180" width="64" height="10" rx="4" fill="#34495a"/>
+                <path d="M100 186h44l4 34" stroke="#2f3f5f" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="156" cy="225" rx="9" ry="5" fill="#1d232b"/>
+                <circle cx="100" cy="206" r="27" fill="none" stroke="#8fa7b1" stroke-width="5"/><path d="M100 181v50M75 206h50M82 188l36 36M118 188l-36 36" stroke="#5d7480" stroke-width="1.5"/><circle cx="100" cy="206" r="5" fill="#a9bcc4"/>
+                <circle cx="150" cy="233" r="6" fill="#5d7480"/>
+                <g class="a s5nArm"><path d="M118 148l18 30" stroke="#4a6fa5" stroke-width="9" stroke-linecap="round"/><circle cx="137" cy="179" r="4.6" fill="#e2a882"/></g>
+                <rect x="105" y="122" width="10" height="12" fill="#c98f6d"/>
+                <circle cx="110" cy="112" r="15" fill="#e2a882"/>
+                <path d="M95 110q0-19 16-19q14 0 16 13q-9-5-18-3q-8 2-14 9z" fill="#221d1b"/><circle cx="102" cy="114" r="3" fill="#d89a74"/>
+                <ellipse class="blink" cx="117" cy="111" rx="1.8" ry="2.1" fill="#1b1f24"/><ellipse class="blink" cx="124" cy="111" rx="1.8" ry="2.1" fill="#1b1f24"/>
+                <path d="M114 105q3-2 6 0M121 105q3-2 6 0" stroke="#221d1b" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                <path d="M115 119q4.5 4 9 0" stroke="#7c3b2c" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+                <g class="a s5nTalk" opacity="0"><ellipse class="s5flap" cx="119.5" cy="120" rx="3" ry="2.4" fill="#5e2a20"/></g>
+                <g class="a s5mugC" opacity="0"><use href="#s5mug" transform="translate(158 151)"/></g>
+
+                <!-- Support worker -->
+                <g class="a s5walk"><g class="a s5flip">
+                  <path d="M358 138q4 18 2 34" stroke="#d9a07c" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M358 137v9" stroke="#1a9a5f" stroke-width="9" stroke-linecap="round"/>
+                  <g class="a s5lB"><path d="M354 186v40" stroke="#26364a" stroke-width="10" stroke-linecap="round"/><ellipse cx="350" cy="230" rx="8" ry="4.5" fill="#151b21"/></g>
+                  <g class="a s5lF"><path d="M346 186v40" stroke="#2f4560" stroke-width="10" stroke-linecap="round"/><ellipse cx="342" cy="230" rx="8" ry="4.5" fill="#151b21"/></g>
+                  <path d="M336 188l2-44q1-12 12-12q11 0 12 12l2 44z" fill="#22b573"/><rect x="336" y="180" width="28" height="9" rx="3" fill="#2f4560"/>
+                  <path d="M344 133l6 7 6-7z" fill="#e9f7ef"/><path d="M345 137l5 15 5-15" stroke="#0f6b40" stroke-width="1.5" fill="none"/><rect x="346" y="151" width="8" height="10" rx="1.5" fill="#eef5f1"/>
+                  <rect x="345" y="122" width="8" height="11" fill="#d39a76"/>
+                  <g class="a s5whead">
+                    <circle cx="349" cy="114" r="13" fill="#e6b08c"/>
+                    <path d="M336 113q0-18 15-18q13 0 14 13l-2 6q-2-9-12-9q-10 0-15 8z" fill="#3a2a22"/><circle cx="364" cy="107" r="5.5" fill="#3a2a22"/><circle cx="356" cy="116" r="2.6" fill="#d39a76"/>
+                    <ellipse class="blink" cx="342" cy="114" rx="1.6" ry="2" fill="#1b1f24"/><ellipse class="blink" cx="348.5" cy="114" rx="1.6" ry="2" fill="#1b1f24"/>
+                    <path d="M341 121q4 3 8 0" stroke="#7a3d2e" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                    <g class="a s5wTalk" opacity="0"><ellipse class="s5flap" cx="345" cy="122" rx="2.8" ry="2.2" fill="#6b2f22"/></g>
+                  </g>
+                  <g class="a s5aF"><path d="M342 138v38" stroke="#e6b08c" stroke-width="6.5" stroke-linecap="round"/><path d="M342 137v9" stroke="#22b573" stroke-width="9.5" stroke-linecap="round"/><circle cx="342" cy="176" r="4.6" fill="#e6b08c"/>
+                    <path class="a s5thumb" d="M342 176l-6 3.5" stroke="#e6b08c" stroke-width="3.4" stroke-linecap="round" opacity="0"/>
+                    <g class="a s5mugB" opacity="0"><use href="#s5mug" transform="translate(338 168)"/></g></g>
+                </g></g>
+                <g class="a s5qs" opacity="0" font-size="17" font-weight="900" fill="#ffd24a"><text class="s5bob" x="356" y="90">?</text><text class="s5bob" style="animation-delay:-.5s" x="370" y="80">?</text><text class="s5bob" style="animation-delay:-1s" x="384" y="92">?</text></g>
+
+                <!-- Conversation -->
+                <g class="a s5wb1"><rect x="226" y="30" width="238" height="30" rx="15" fill="#eef4f6"/><path d="M332 58l6 14 8-14z" fill="#eef4f6"/><text x="345" y="50" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1f3640">How do you like your coffee?</text></g>
+                <g class="a s5nb"><rect x="14" y="22" width="206" height="50" rx="16" fill="#c7f7d8"/><path d="M114 70l6 14 8-14z" fill="#c7f7d8"/><text x="117" y="42" text-anchor="middle" font-size="13.5" font-weight="700" fill="#11351f">Strong, a splash of milk,</text><text x="117" y="61" text-anchor="middle" font-size="13.5" font-weight="700" fill="#11351f">and no sugar, please.</text></g>
+                <g class="a s5wb2" opacity="0"><rect x="222" y="30" width="242" height="30" rx="15" fill="#eef4f6"/><path d="M332 58l6 14 8-14z" fill="#eef4f6"/><text x="343" y="50" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1f3640">Got it, thanks for telling me!</text></g>
+                <g class="a s5nb2" opacity="0"><rect x="24" y="44" width="166" height="30" rx="15" fill="#c7f7d8"/><path d="M114 72l6 14 8-14z" fill="#c7f7d8"/><text x="107" y="64" text-anchor="middle" font-size="13.5" font-weight="700" fill="#11351f">Perfect, thank you!</text></g>
+                <g class="a s5chip"><rect x="270" y="236" width="196" height="26" rx="13" fill="#0e2c19" stroke="#00ff51"/><circle cx="284" cy="249" r="7.5" fill="#00ff51"/><path d="M280.5 249l2.7 2.7 5-5.5" stroke="#0e2c19" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="297" y="253.5" font-size="12.5" font-weight="700" fill="#d9ffe5">Asked, listened, got it right</text></g>
+              </svg>
+            </div>
+            <figcaption><h3><span class="num">5</span>Communication</h3><p>Never hesitate to ask questions. Clear, honest communication makes everything easier.</p></figcaption>
+          </figure>
+
+          <figure class="info-card">
+            <div class="scene paused">
+              <svg viewBox="0 0 480 270" role="img" font-family="Arial, Helvetica, sans-serif" style="--d:15s" aria-label="Animated scene: a support worker tidies Nader's living room with care. They return a book to the shelf, straighten the cushions, ask Nader before moving his phone and place it on the table beside him, fold the blanket, and ask if there is anything else he needs. The lamp glows warmly and the room feels calm and welcoming.">
+                <style>
+                  .s6walk{animation-name:s6walk} @keyframes s6walk{0%,3%{transform:translateX(20px)}8%,12%{transform:translateX(-22px)}18%{transform:translateX(86px)}19.5%,23%{transform:translateX(90px)}27%,30%{transform:translateX(40px)}32%,36%{transform:translateX(-20px)}38%,53%{transform:translateX(0)}58%,61%{transform:translateX(-83px)}66%,71%{transform:translateX(40px)}75%,100%{transform:translateX(-40px)}}
+                  .s6flip{animation-name:s6flip;transform-origin:300px 0} @keyframes s6flip{0%,11%{transform:scaleX(1)}12%,22%{transform:scaleX(-1)}23%,100%{transform:scaleX(1)}}
+                  .s6bend{animation-name:s6bend;transform-origin:300px 186px} @keyframes s6bend{0%,8%{transform:rotate(0)}9.5%,10.5%{transform:rotate(-28deg)}12%,37.5%{transform:rotate(0)}39%,39.5%{transform:rotate(-12deg)}41%,65.5%{transform:rotate(0)}67%,69%{transform:rotate(-15deg)}70.5%,100%{transform:rotate(0)}}
+                  .s6arm{animation-name:s6arm;transform-origin:292px 138px}
+                  @keyframes s6arm{0%,8%{transform:rotate(0)}9.5%,10.5%{transform:rotate(28deg)}12%,18%{transform:rotate(30deg)}19%{transform:rotate(112deg)}20%{transform:rotate(104deg)}21.5%,27%{transform:rotate(0)}28.2%,29.6%{transform:rotate(52deg)}30.5%,32%{transform:rotate(0)}33.2%,34.6%{transform:rotate(62deg)}35.5%,38%{transform:rotate(0)}39%,39.5%{transform:rotate(12deg)}41%,53%{transform:rotate(60deg)}58%,59.5%{transform:rotate(45deg)}61%,66%{transform:rotate(0)}67%,69%{transform:rotate(15deg)}70.5%,75%{transform:rotate(0)}76%,79%{transform:rotate(25deg)}80%,100%{transform:rotate(0)}}
+                  .s6lF{animation-name:s6lF;transform-origin:296px 186px} .s6lB{animation-name:s6lB;transform-origin:304px 186px}
+                  @keyframes s6lF{0%,3%{transform:rotate(0)}4.25%{transform:rotate(16deg)}5.5%{transform:rotate(-16deg)}6.75%{transform:rotate(16deg)}8%,12%{transform:rotate(0)}13.2%{transform:rotate(16deg)}14.4%{transform:rotate(-16deg)}15.6%{transform:rotate(16deg)}16.8%{transform:rotate(-16deg)}18%,23%{transform:rotate(0)}24.3%{transform:rotate(16deg)}25.7%{transform:rotate(-16deg)}27%,30%{transform:rotate(0)}31%{transform:rotate(14deg)}32%,36%{transform:rotate(0)}37%{transform:rotate(14deg)}38%,53%{transform:rotate(0)}54.25%{transform:rotate(16deg)}55.5%{transform:rotate(-16deg)}56.75%{transform:rotate(16deg)}58%,61%{transform:rotate(0)}62.25%{transform:rotate(16deg)}63.5%{transform:rotate(-16deg)}64.75%{transform:rotate(16deg)}66%,71%{transform:rotate(0)}72.3%{transform:rotate(16deg)}73.7%{transform:rotate(-16deg)}75%,100%{transform:rotate(0)}}
+                  @keyframes s6lB{0%,3%{transform:rotate(0)}4.25%{transform:rotate(-16deg)}5.5%{transform:rotate(16deg)}6.75%{transform:rotate(-16deg)}8%,12%{transform:rotate(0)}13.2%{transform:rotate(-16deg)}14.4%{transform:rotate(16deg)}15.6%{transform:rotate(-16deg)}16.8%{transform:rotate(16deg)}18%,23%{transform:rotate(0)}24.3%{transform:rotate(-16deg)}25.7%{transform:rotate(16deg)}27%,30%{transform:rotate(0)}31%{transform:rotate(-14deg)}32%,36%{transform:rotate(0)}37%{transform:rotate(-14deg)}38%,53%{transform:rotate(0)}54.25%{transform:rotate(-16deg)}55.5%{transform:rotate(16deg)}56.75%{transform:rotate(-16deg)}58%,61%{transform:rotate(0)}62.25%{transform:rotate(-16deg)}63.5%{transform:rotate(16deg)}64.75%{transform:rotate(-16deg)}66%,71%{transform:rotate(0)}72.3%{transform:rotate(-16deg)}73.7%{transform:rotate(16deg)}75%,100%{transform:rotate(0)}}
+                  .s6bookH{animation-name:s6bookH;transform-origin:292px 176px} @keyframes s6bookH{0%,10%{opacity:0;transform:rotate(0)}10.3%{opacity:1;transform:rotate(0)}12%,18%{opacity:1;transform:rotate(60deg)}19%{opacity:1;transform:rotate(-22deg)}19.8%{opacity:1;transform:rotate(-14deg)}20.1%,100%{opacity:0;transform:rotate(-14deg)}}
+                  .s6bookT{animation-name:s6bookT} @keyframes s6bookT{0%,10%{opacity:1}10.3%,98%{opacity:0}99%,100%{opacity:1}}
+                  .s6bookS{animation-name:s6bookS} @keyframes s6bookS{0%,19.8%{opacity:0}20.1%,98%{opacity:1}99%,100%{opacity:0}}
+                  .s6c2{animation-name:s6c2;transform-origin:315px 151px} @keyframes s6c2{0%,28%{transform:translate(6px,8px) rotate(24deg) scale(1)}29.5%{transform:translate(0,0) rotate(-3deg) scale(1.06)}30.5%,98%{transform:translate(0,0) rotate(0) scale(1)}99%,100%{transform:translate(6px,8px) rotate(24deg) scale(1)}}
+                  .s6c1{animation-name:s6c1;transform-origin:247px 151px} @keyframes s6c1{0%,33%{transform:translate(-6px,10px) rotate(-28deg) scale(1)}34.5%{transform:translate(0,0) rotate(3deg) scale(1.06)}35.5%,98%{transform:translate(0,0) rotate(0) scale(1)}99%,100%{transform:translate(-6px,10px) rotate(-28deg) scale(1)}}
+                  .s6phS{animation-name:s6phS} @keyframes s6phS{0%,39.5%{opacity:1}39.8%,98%{opacity:0}99%,100%{opacity:1}}
+                  .s6phH{animation-name:s6phH;transform-origin:292px 176px} @keyframes s6phH{0%,39.5%{opacity:0;transform:rotate(0)}39.8%{opacity:1;transform:rotate(0)}41%,53%{opacity:1;transform:rotate(-60deg)}58%,59.4%{opacity:1;transform:rotate(-45deg)}59.7%,100%{opacity:0;transform:rotate(-45deg)}}
+                  .s6phT{animation-name:s6phT} @keyframes s6phT{0%,59.5%{opacity:0}59.8%,98%{opacity:1}99%,100%{opacity:0}}
+                  .s6blM{animation-name:s6blM} @keyframes s6blM{0%,67.5%{opacity:1}69.5%,98%{opacity:0}99%,100%{opacity:1}}
+                  .s6blF{animation-name:s6blF;transform-origin:335px 168px} @keyframes s6blF{0%,67.5%{opacity:0;transform:scale(.7)}69.5%,98%{opacity:1;transform:scale(1)}99%,100%{opacity:0;transform:scale(.7)}}
+                  .s6shade{animation-name:s6shade} @keyframes s6shade{0%,86%{fill:#7d7362}88%,98%{fill:#f6d38a}99%,100%{fill:#7d7362}}
+                  .s6glow{animation-name:s6glow} @keyframes s6glow{0%,86%{opacity:0}89%,98%{opacity:1}99%,100%{opacity:0}}
+                  .s6warm{animation-name:s6warm} @keyframes s6warm{0%,86%{opacity:0}90%,97%{opacity:.07}99%,100%{opacity:0}}
+                  .s6heart{animation-name:s6heart;transform-origin:96px 84px} @keyframes s6heart{0%,89%{opacity:0;transform:translateY(6px) scale(.5)}91%,95%{opacity:1;transform:translateY(0) scale(1)}97%,100%{opacity:0;transform:translateY(-6px) scale(1)}}
+                  .s6chip{animation-name:s6chip} @keyframes s6chip{0%,88%{opacity:0;transform:translateY(8px)}90%,97%{opacity:1;transform:translateY(0)}99%,100%{opacity:0;transform:translateY(0)}}
+                  .s6veil{animation-name:s6veil} @keyframes s6veil{0%{opacity:.92}3%,96%{opacity:0}99%,100%{opacity:.92}}
+                  .s6wTalk{animation-name:s6wTalk} @keyframes s6wTalk{0%,41%{opacity:0}42%,47%{opacity:1}48%,75.5%{opacity:0}76.5%,82%{opacity:1}83%,100%{opacity:0}}
+                  .s6nTalk{animation-name:s6nTalk} @keyframes s6nTalk{0%,48%{opacity:0}49%,53.5%{opacity:1}54.5%,82.5%{opacity:0}83.5%,88.5%{opacity:1}89.5%,100%{opacity:0}}
+                  .s6flap{animation:s6flap .28s steps(2) infinite;transform-box:fill-box;transform-origin:center} @keyframes s6flap{0%{transform:scaleY(.35)}100%{transform:scaleY(1)}}
+                  .s6nhead{animation-name:s6nhead;transform-origin:74px 128px} @keyframes s6nhead{0%,48%{transform:rotate(0)}49.5%{transform:rotate(6deg)}51%{transform:rotate(0)}52.5%{transform:rotate(6deg)}54%,83%{transform:rotate(0)}84.5%{transform:rotate(6deg)}86%,100%{transform:rotate(0)}}
+                  .s6wb1{animation-name:s6wb1;transform-origin:300px 74px} @keyframes s6wb1{0%,40.5%{opacity:0;transform:scale(.7)}42%,47%{opacity:1;transform:scale(1)}48.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s6nb1{animation-name:s6nb1;transform-origin:92px 90px} @keyframes s6nb1{0%,47.5%{opacity:0;transform:scale(.7)}49%,54%{opacity:1;transform:scale(1)}55.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s6wb2{animation-name:s6wb2;transform-origin:262px 74px} @keyframes s6wb2{0%,75.5%{opacity:0;transform:scale(.7)}77%,82%{opacity:1;transform:scale(1)}83.5%,100%{opacity:0;transform:scale(.95)}}
+                  .s6nb2{animation-name:s6nb2;transform-origin:92px 90px} @keyframes s6nb2{0%,82.5%{opacity:0;transform:scale(.7)}84%,89%{opacity:1;transform:scale(1)}90.5%,100%{opacity:0;transform:scale(.95)}}
+                </style>
+                <defs>
+                  <linearGradient id="s6wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#232f38"/><stop offset="1" stop-color="#1b252c"/></linearGradient>
+                  <radialGradient id="s6lampglow"><stop offset="0" stop-color="#ffd58a" stop-opacity=".38"/><stop offset="1" stop-color="#ffd58a" stop-opacity="0"/></radialGradient>
+                </defs>
+
+                <!-- Room -->
+                <rect width="480" height="212" fill="url(#s6wall)"/><rect y="206" width="480" height="64" fill="#25333a"/><rect y="204" width="480" height="5" fill="#2f3e46"/>
+                <path d="M0 232h480M0 254h480" stroke="#2b3b42" stroke-width="2"/>
+                <ellipse cx="270" cy="242" rx="150" ry="16" fill="#3a4c55"/><ellipse cx="270" cy="242" rx="128" ry="11" fill="none" stroke="#4d6470" stroke-width="2"/>
+                <rect x="18" y="34" width="74" height="74" rx="4" fill="#335a70" stroke="#4b6470" stroke-width="4"/><path d="M55 34v74M18 71h74" stroke="#4b6470" stroke-width="3"/>
+                <rect x="252" y="70" width="58" height="38" rx="2" fill="#2a4049" stroke="#b49a72" stroke-width="3"/><path d="M255 105l14-16 9 9 7-6 22 13z" fill="#4f8f74"/>
+                <!-- Floor lamp (switches on at the end) -->
+                <circle class="a s6glow" cx="372" cy="96" r="80" fill="url(#s6lampglow)"/>
+                <path d="M372 92v112" stroke="#7d8b8f" stroke-width="3"/><ellipse cx="372" cy="204" rx="12" ry="3.5" fill="#56656b"/>
+                <path class="a s6shade" d="M358 92h28l-6-22h-16z" fill="#f6d38a"/>
+                <!-- Bookshelf -->
+                <rect x="392" y="56" width="72" height="150" rx="3" fill="#3a2f28"/><rect x="397" y="60" width="62" height="142" fill="#2b231e"/>
+                <g fill="#5a4a3e"><rect x="397" y="98" width="62" height="4"/><rect x="397" y="140" width="62" height="4"/><rect x="397" y="182" width="62" height="4"/></g>
+                <rect x="400" y="72" width="9" height="26" fill="#5aa9e6"/><rect x="410" y="76" width="8" height="22" fill="#e8c27a"/><rect x="419" y="70" width="10" height="28" fill="#4fbf7a"/><path d="M432 98l9-26 7 3-8 23z" fill="#b58ad6"/>
+                <rect x="400" y="114" width="9" height="26" fill="#e8c27a"/><rect x="410" y="110" width="9" height="30" fill="#7fd4c8"/><rect x="420" y="116" width="8" height="24" fill="#5aa9e6"/><rect x="444" y="112" width="9" height="28" fill="#4fbf7a"/>
+                <rect class="a s6bookS" x="431" y="112" width="11" height="28" fill="#d05a5a"/>
+                <rect x="404" y="160" width="46" height="22" rx="4" fill="#8a6b52"/><path d="M404 168h46" stroke="#a88566" stroke-width="2"/>
+                <!-- Sofa, cushions, blanket, phone -->
+                <rect x="206" y="118" width="152" height="56" rx="12" fill="#3f5f6e"/>
+                <rect x="200" y="166" width="164" height="24" rx="8" fill="#4d7283"/>
+                <rect x="194" y="146" width="18" height="46" rx="8" fill="#456877"/><rect x="352" y="146" width="18" height="46" rx="8" fill="#456877"/>
+                <path d="M208 190v8M356 190v8" stroke="#2b3f48" stroke-width="5" stroke-linecap="round"/>
+                <g class="a s6c1"><rect x="232" y="136" width="30" height="30" rx="7" fill="#e8c27a"/><path d="M238 142l18 18M256 142l-18 18" stroke="#d1a85d" stroke-width="1.2"/></g>
+                <g class="a s6c2"><rect x="300" y="136" width="30" height="30" rx="7" fill="#7fd4c8"/><circle cx="315" cy="151" r="6" fill="none" stroke="#62b8ac" stroke-width="1.5"/></g>
+                <g class="a s6blM" opacity="0"><path d="M318 177q-5-14 7-19q6-9 15-2q11-2 10 11q5 6-2 10z" fill="#b58ad6"/><path d="M326 162q6 4 4 12M338 158q3 8-2 16" stroke="#9a6fbd" stroke-width="1.5" fill="none"/></g>
+                <g class="a s6blF"><rect x="320" y="163" width="30" height="11" rx="3" fill="#b58ad6"/><path d="M320 167h30M320 171h30" stroke="#9a6fbd" stroke-width="1.2"/></g>
+                <g class="a s6phS" opacity="0"><rect x="284" y="166" width="15" height="5" rx="1.5" fill="#1b2228" stroke="#6b7880"/></g>
+                <!-- Coffee table with stray book -->
+                <rect x="222" y="196" width="96" height="6" rx="3" fill="#9b7f61"/><path d="M230 202v26M310 202v26" stroke="#7d654d" stroke-width="4" stroke-linecap="round"/>
+                <ellipse cx="300" cy="194" rx="7" ry="2" fill="#7d654d"/><rect x="295" y="185" width="10" height="10" rx="2" fill="#f1f5f2"/>
+                <g class="a s6bookT" opacity="0"><rect x="236" y="190" width="26" height="6" rx="1" fill="#d05a5a"/><path d="M238 193h22" stroke="#f3d9c9" stroke-width="1.2"/></g>
+
+                <!-- Nader and his side table -->
+                <rect x="140" y="176" width="50" height="5" rx="2" fill="#9b7f61"/><path d="M146 181v47M184 181v47" stroke="#7d654d" stroke-width="4" stroke-linecap="round"/>
+                <g class="a s6phT"><rect x="170" y="171" width="16" height="5" rx="1.5" fill="#1b2228" stroke="#6b7880"/></g>
+                <rect x="36" y="124" width="10" height="64" rx="4" fill="#34495a"/>
+                <path d="M41 190h62l8 30M111 226h18" stroke="#a9bcc4" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M48 184q-4-28 2-44q6-12 20-12q13 0 17 12l4 44z" fill="#4a6fa5"/>
+                <rect x="42" y="180" width="64" height="10" rx="4" fill="#34495a"/>
+                <path d="M64 186h44l4 34" stroke="#2f3f5f" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="120" cy="225" rx="9" ry="5" fill="#1d232b"/>
+                <path d="M82 148q4 20 16 30" stroke="#4a6fa5" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="99" cy="179" r="4.5" fill="#e2a882"/>
+                <circle cx="64" cy="206" r="27" fill="none" stroke="#8fa7b1" stroke-width="5"/><path d="M64 181v50M39 206h50M46 188l36 36M82 188l-36 36" stroke="#5d7480" stroke-width="1.5"/><circle cx="64" cy="206" r="5" fill="#a9bcc4"/>
+                <circle cx="114" cy="233" r="6" fill="#5d7480"/>
+                <rect x="69" y="122" width="10" height="12" fill="#c98f6d"/>
+                <g class="a s6nhead">
+                  <circle cx="74" cy="112" r="15" fill="#e2a882"/>
+                  <path d="M59 110q0-19 16-19q14 0 16 13q-9-5-18-3q-8 2-14 9z" fill="#221d1b"/><circle cx="66" cy="114" r="3" fill="#d89a74"/>
+                  <ellipse class="blink" cx="81" cy="111" rx="1.8" ry="2.1" fill="#1b1f24"/><ellipse class="blink" cx="88" cy="111" rx="1.8" ry="2.1" fill="#1b1f24"/>
+                  <path d="M78 105q3-2 6 0M85 105q3-2 6 0" stroke="#221d1b" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                  <path d="M79 119q4.5 4 9 0" stroke="#7c3b2c" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+                  <g class="a s6nTalk" opacity="0"><ellipse class="s6flap" cx="83.5" cy="120" rx="3" ry="2.4" fill="#5e2a20"/></g>
+                </g>
+                <path class="a s6heart" d="M96 90l-6-6a3.6 3.6 0 016-4 3.6 3.6 0 016 4z" fill="#00ff51" opacity="0"/>
+
+                <!-- Support worker -->
+                <g class="a s6walk"><g class="a s6flip">
+                  <g class="a s6lB"><path d="M304 186v40" stroke="#26364a" stroke-width="10" stroke-linecap="round"/><ellipse cx="300" cy="230" rx="8" ry="4.5" fill="#151b21"/></g>
+                  <g class="a s6lF"><path d="M296 186v40" stroke="#2f4560" stroke-width="10" stroke-linecap="round"/><ellipse cx="292" cy="230" rx="8" ry="4.5" fill="#151b21"/></g>
+                  <g class="a s6bend">
+                    <path d="M308 138q4 18 2 34" stroke="#d9a07c" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M308 137v9" stroke="#1a9a5f" stroke-width="9" stroke-linecap="round"/>
+                    <path d="M286 188l2-44q1-12 12-12q11 0 12 12l2 44z" fill="#22b573"/><rect x="286" y="180" width="28" height="9" rx="3" fill="#2f4560"/>
+                    <path d="M294 133l6 7 6-7z" fill="#e9f7ef"/><path d="M295 137l5 15 5-15" stroke="#0f6b40" stroke-width="1.5" fill="none"/><rect x="296" y="151" width="8" height="10" rx="1.5" fill="#eef5f1"/>
+                    <rect x="295" y="122" width="8" height="11" fill="#d39a76"/>
+                    <circle cx="299" cy="114" r="13" fill="#e6b08c"/>
+                    <path d="M286 113q0-18 15-18q13 0 14 13l-2 6q-2-9-12-9q-10 0-15 8z" fill="#3a2a22"/><circle cx="314" cy="107" r="5.5" fill="#3a2a22"/><circle cx="306" cy="116" r="2.6" fill="#d39a76"/>
+                    <ellipse class="blink" cx="292" cy="114" rx="1.6" ry="2" fill="#1b1f24"/><ellipse class="blink" cx="298.5" cy="114" rx="1.6" ry="2" fill="#1b1f24"/>
+                    <path d="M291 121q4 3 8 0" stroke="#7a3d2e" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                    <g class="a s6wTalk" opacity="0"><ellipse class="s6flap" cx="295" cy="122" rx="2.8" ry="2.2" fill="#6b2f22"/></g>
+                    <g class="a s6arm"><path d="M292 138v38" stroke="#e6b08c" stroke-width="6.5" stroke-linecap="round"/><path d="M292 137v9" stroke="#22b573" stroke-width="9.5" stroke-linecap="round"/>
+                      <g class="a s6bookH" opacity="0"><rect x="279" y="173" width="26" height="6" rx="1" fill="#d05a5a"/></g>
+                      <g class="a s6phH" opacity="0"><rect x="288" y="168" width="9" height="15" rx="2" fill="#1b2228" stroke="#8fa0a8"/><rect x="289.5" y="170" width="6" height="10" rx="1" fill="#3d8bd0"/></g>
+                      <circle cx="292" cy="176" r="4.6" fill="#e6b08c"/></g>
+                  </g>
+                </g></g>
+
+                <!-- Conversation -->
+                <g class="a s6wb1" opacity="0"><rect x="186" y="30" width="270" height="30" rx="15" fill="#eef4f6"/><path d="M290 58l6 14 8-14z" fill="#eef4f6"/><text x="321" y="50" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1f3640">Shall I put your phone by you?</text></g>
+                <g class="a s6nb1" opacity="0"><rect x="10" y="46" width="164" height="30" rx="15" fill="#c7f7d8"/><path d="M80 74l6 14 8-14z" fill="#c7f7d8"/><text x="92" y="66" text-anchor="middle" font-size="13.5" font-weight="700" fill="#11351f">Yes please, thanks!</text></g>
+                <g class="a s6wb2" opacity="0"><rect x="150" y="30" width="226" height="30" rx="15" fill="#eef4f6"/><path d="M252 58l6 14 8-14z" fill="#eef4f6"/><text x="263" y="50" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1f3640">Anything else I can do?</text></g>
+                <g class="a s6nb2" opacity="0"><rect x="10" y="46" width="164" height="30" rx="15" fill="#c7f7d8"/><path d="M80 74l6 14 8-14z" fill="#c7f7d8"/><text x="92" y="66" text-anchor="middle" font-size="13.5" font-weight="700" fill="#11351f">All good, thank you!</text></g>
+                <rect class="a s6warm" width="480" height="270" fill="#ffb347" opacity=".07"/>
+                <g class="a s6chip"><rect x="262" y="236" width="204" height="26" rx="13" fill="#0e2c19" stroke="#00ff51"/><circle cx="276" cy="249" r="7.5" fill="#00ff51"/><path d="M272.5 249l2.7 2.7 5-5.5" stroke="#0e2c19" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="289" y="253.5" font-size="12.5" font-weight="700" fill="#d9ffe5">Tidy, calm and welcoming</text></g>
+                <rect class="a s6veil" width="480" height="270" fill="#0b1013" opacity="0"/>
+              </svg>
+            </div>
+            <figcaption><h3><span class="num">6</span>Respectful &amp; Comfortable Home</h3><p>Treat Nader's home and belongings with care. A tidy, calm, welcoming home helps everyone feel comfortable.</p></figcaption>
+          </figure>
+        </div>
+        <p class="summary-note">Nader appreciates support workers who are clean, respectful, considerate, comfortable with personal care, and happy to communicate openly.</p>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    // Visual-only password protection. GitHub Pages cannot securely hide a password or protect video URLs.
+    const correctPassword = '1313';
+    const login = document.getElementById('loginSection');
+    const content = document.getElementById('videoSection');
+    const passwordInput = document.getElementById('passwordInput');
+    const errorMessage = document.getElementById('errorMessage');
+
+    login.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (passwordInput.value !== correctPassword) {
+        errorMessage.textContent = 'Wrong password. Please try again.';
+        passwordInput.value = '';
+        passwordInput.focus();
+        return;
+      }
+      login.hidden = true;
+      content.hidden = false;
+      document.querySelectorAll('iframe[data-src]').forEach((frame) => {
+        frame.src = frame.dataset.src;
+      });
+      document.getElementById('aboutTitle').setAttribute('tabindex', '-1');
+    });
+
+    // Scenes start paused and only play while on screen, which saves battery and keeps the page smooth.
+    const scenes = document.querySelectorAll('.scene');
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(({ target, isIntersecting }) => target.classList.toggle('paused', !isIntersecting));
+      }, { threshold: 0.15 });
+      scenes.forEach((scene) => observer.observe(scene));
+    } else {
+      scenes.forEach((scene) => scene.classList.remove('paused'));
+    }
+    // Reduced-motion viewers see still frames unless they choose to play the animations.
+    const allowMotion = () => document.body.classList.add('motion-ok');
+    try { if (localStorage.getItem('naderMotionOk') === '1') allowMotion(); } catch (e) {}
+    document.getElementById('motionButton').addEventListener('click', () => {
+      allowMotion();
+      try { localStorage.setItem('naderMotionOk', '1'); } catch (e) {}
+    });
+
+    // Also pause everything while the browser tab is in the background.
+    document.addEventListener('visibilitychange', () => document.body.classList.toggle('tab-hidden', document.hidden));
+
+    // Retained from the original page. These restrictions do not prevent copying or downloading.
+    document.addEventListener('contextmenu', (event) => event.preventDefault());
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'F12' ||
+          (event.ctrlKey && event.shiftKey && ['I','J','C'].includes(event.key.toUpperCase())) ||
+          (event.ctrlKey && event.key.toUpperCase() === 'U')) {
+        event.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>
