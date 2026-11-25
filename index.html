@@ -2,2385 +2,2281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111111">
-  <title>Nader | Support Worker Tutorials</title>
-
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #111;
-      --panel: #1c1c1c;
-      --tile: #222;
-      --line: #333;
-      --green: #00ff51;
-      --text: #f4f6f5;
-      --muted: #b8c2bc;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
-      padding: 22px 12px 48px;
-    }
-
-    [hidden] {
-      display: none !important;
-    }
-
-    .box {
-      max-width: 1200px;
-      margin: auto;
-      padding: clamp(18px, 4vw, 32px);
-      background: var(--panel);
-      border: 1px solid #2b2b2b;
-      border-radius: 18px;
-    }
-
-    h1 {
-      font-size: clamp(24px, 4.5vw, 32px);
-      text-align: center;
-      margin: 0 0 12px;
-    }
-
-    .warning-text {
-      color: var(--green);
-      font-size: clamp(14px, 2vw, 17px);
-      font-weight: 700;
-      line-height: 1.55;
-      text-align: center;
-      max-width: 800px;
-      margin: 0 auto 26px;
-    }
-
-    /* ---------- Login ---------- */
-
-    .login {
-      text-align: center;
-      padding: 12px 0 24px;
-    }
-
-    .login label {
-      display: block;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-
-    .login input {
-      width: min(100%, 320px);
-      font: inherit;
-      font-size: 17px;
-      padding: 13px 15px;
-      color: #fff;
-      background: #141414;
-      border: 1px solid #555;
-      border-radius: 10px;
-    }
-
-    input:focus-visible,
-    button:focus-visible {
-      outline: 3px solid var(--green);
-      outline-offset: 3px;
-    }
-
-    button {
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      border-radius: 10px;
-      background: var(--green);
-      color: #052b12;
-      padding: 13px 23px;
-      margin-left: 8px;
-    }
-
-    button:hover {
-      filter: brightness(1.12);
-    }
-
-    .error {
-      color: #ff9494;
-      min-height: 22px;
-      margin: 10px 0 0;
-    }
-
-    .session-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 22px;
-      padding: 11px 14px;
-      background: #14231a;
-      border: 1px solid #254c32;
-      border-radius: 10px;
-    }
-
-    .session-status {
-      font-size: 13px;
-      color: #a8e8bc;
-    }
-
-    .logout-button {
-      font-size: 13px;
-      background: #222;
-      border: 1px solid #555;
-      color: #eee;
-      padding: 8px 15px;
-      margin: 0;
-    }
-
-    .logout-button:hover {
-      background: #522626;
-      border-color: #ff6666;
-    }
-
-    /* ---------- Eight Video Boxes ---------- */
-
-    .video-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-
-    .video-container {
-      min-width: 0;
-      background: var(--tile);
-      border: 1px solid var(--line);
-      border-radius: 13px;
-      overflow: hidden;
-      transition: border-color .2s, transform .2s;
-    }
-
-    .video-container:hover {
-      border-color: #408355;
-    }
-
-    .video-title {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 54px;
-      padding: 10px 8px;
-      margin: 0;
-      font-size: 15px;
-      line-height: 1.4;
-      text-align: center;
-      font-weight: 700;
-    }
-
-    .video-frame {
-      display: block;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      border: 0;
-      background: #050505;
-    }
-
-    .video-placeholder {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 9px;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background: #101412;
-      color: #849088;
-      font-size: 12px;
-      text-align: center;
-      padding: 12px;
-    }
-
-    .play-icon {
-      display: grid;
-      place-items: center;
-      width: 44px;
-      height: 44px;
-      border: 1px solid #3b5143;
-      border-radius: 50%;
-      color: #669b75;
-      font-size: 20px;
-      padding-left: 3px;
-    }
-
-    .video-number {
-      padding: 8px;
-      text-align: center;
-      font-size: 11px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: #89988e;
-      border-top: 1px solid var(--line);
-    }
-
-    /* ---------- A Little About Nader ---------- */
-
-    .about-section {
-      margin-top: 38px;
-      border-top: 1px solid var(--line);
-      padding-top: 30px;
-    }
-
-    .about-section h2 {
-      font-size: clamp(23px, 4vw, 29px);
-      text-align: center;
-      color: var(--green);
-      margin: 0 0 10px;
-    }
-
-    .about-intro {
-      color: var(--muted);
-      line-height: 1.6;
-      text-align: center;
-      max-width: 640px;
-      margin: 0 auto 26px;
-    }
-
-    .about-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 20px;
-    }
-
-    .info-card {
-      margin: 0;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: var(--tile);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-    }
-
-    .scene {
-      position: relative;
-      overflow: hidden;
-      background: #0f171b;
-      border-bottom: 1px solid #2c2c2c;
-      contain: paint;
-    }
-
-    .scene svg {
-      display: block;
-      width: 100%;
-      height: auto;
-      aspect-ratio: 16 / 9;
-    }
-
-    figcaption {
-      padding: 15px 18px 19px;
-    }
-
-    figcaption h3 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text);
-      font-size: 17px;
-      line-height: 1.3;
-      margin: 0 0 8px;
-    }
-
-    .num {
-      flex: none;
-      display: grid;
-      place-items: center;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: rgba(0, 255, 81, .12);
-      border: 1px solid rgba(0, 255, 81, .5);
-      color: var(--green);
-      font-size: 13px;
-    }
-
-    figcaption p {
-      color: #d3dad6;
-      line-height: 1.55;
-      font-size: 14.5px;
-      margin: 0;
-    }
-
-    .summary-note {
-      text-align: center;
-      margin: 24px 0 0;
-      padding: 17px;
-      border-radius: 12px;
-      border: 1px solid #1f5a33;
-      background: #12261a;
-      color: #eafff0;
-      line-height: 1.55;
-    }
-
-    /* ---------- Animation Engine ---------- */
-
-    .scene svg * {
-      transform-box: view-box;
-    }
-
-    .scene .a {
-      animation-duration: 15s;
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: infinite;
-      animation-fill-mode: both;
-    }
-
-    .scene .blink {
-      transform-box: fill-box;
-      transform-origin: center;
-      animation: blink 4.6s infinite;
-    }
-
-    .scene.paused *,
-    .tab-hidden .scene * {
-      animation-play-state: paused !important;
-    }
-
-    @keyframes blink {
-      0%, 93%, 100% { transform: scaleY(1); }
-      96% { transform: scaleY(.12); }
-    }
-
-    @keyframes workerEnter {
-      0%, 8% { transform: translateX(65px); }
-      25%, 85% { transform: translateX(0); }
-      100% { transform: translateX(65px); }
-    }
-
-    @keyframes doorMove {
-      0%, 5% { transform: scaleX(1); }
-      20%, 32% { transform: scaleX(.15); }
-      50%, 100% { transform: scaleX(1); }
-    }
-
-    @keyframes bagMove {
-      0%, 8% { transform: translate(65px, -20px); }
-      25%, 40% { transform: translate(0, -20px); }
-      60%, 90% { transform: translate(0, 0); }
-      100% { transform: translate(65px, -20px); }
-    }
-
-    @keyframes speakOne {
-      0%, 12% { opacity: 0; }
-      15%, 45% { opacity: 1; }
-      50%, 100% { opacity: 0; }
-    }
-
-    @keyframes speakTwo {
-      0%, 48% { opacity: 0; }
-      52%, 85% { opacity: 1; }
-      90%, 100% { opacity: 0; }
-    }
-
-    @keyframes handLeft {
-      0%, 10% { transform: translateX(-20px); }
-      20%, 30% { transform: translateX(0); }
-      35% { transform: translate(8px, -5px); }
-      40% { transform: translate(-8px, 5px); }
-      45% { transform: translate(8px, -5px); }
-      50% { transform: translate(-8px, 5px); }
-      55% { transform: translate(8px, -5px); }
-      60%, 85% { transform: translateX(0); }
-      100% { transform: translateX(-20px); }
-    }
-
-    @keyframes handRight {
-      0%, 10% { transform: translateX(20px); }
-      20%, 30% { transform: translateX(0); }
-      35% { transform: translate(-8px, 5px); }
-      40% { transform: translate(8px, -5px); }
-      45% { transform: translate(-8px, 5px); }
-      50% { transform: translate(8px, -5px); }
-      55% { transform: translate(-8px, 5px); }
-      60%, 85% { transform: translateX(0); }
-      100% { transform: translateX(20px); }
-    }
-
-    @keyframes runningWater {
-      0%, 7%, 25%, 60%, 85%, 100% { opacity: 0; }
-      10%, 22%, 65%, 80% { opacity: 1; }
-    }
-
-    @keyframes bubbles {
-      0%, 25% { opacity: 0; }
-      35%, 58% { opacity: 1; }
-      65%, 100% { opacity: 0; }
-    }
-
-    @keyframes hygieneSteps {
-      0%, 15% { transform: translateX(0); }
-      17%, 27% { transform: translateX(72px); }
-      29%, 58% { transform: translateX(144px); }
-      60%, 74% { transform: translateX(216px); }
-      76%, 87% { transform: translateX(288px); }
-      89%, 100% { transform: translateX(360px); }
-    }
-
-    @keyframes privacyBlind {
-      0%, 5% { transform: scaleY(.12); }
-      15%, 95% { transform: scaleY(1); }
-      100% { transform: scaleY(.12); }
-    }
-
-    @keyframes groomingTool {
-      0%, 45% { transform: translateX(0); }
-      55% { transform: translateX(-35px); }
-      65% { transform: translateX(0); }
-      75% { transform: translateX(-35px); }
-      85%, 100% { transform: translateX(0); }
-    }
-
-    @keyframes legStretch {
-      0%, 15% { transform: rotate(0deg); }
-      35%, 48% { transform: rotate(-40deg); }
-      65%, 100% { transform: rotate(0deg); }
-    }
-
-    @keyframes tensionBar {
-      0%, 15% {
-        transform: scaleX(.95);
-        fill: #ff7045;
-      }
-      50% {
-        transform: scaleX(.55);
-        fill: #ffcc55;
-      }
-      85%, 95% {
-        transform: scaleX(.18);
-        fill: #00ff51;
-      }
-      100% {
-        transform: scaleX(.95);
-        fill: #ff7045;
-      }
-    }
-
-    @keyframes massageGlow {
-      0%, 60% { opacity: 0; }
-      70%, 90% { opacity: .85; }
-      100% { opacity: 0; }
-    }
-
-    @keyframes coffeePour {
-      0%, 48% { opacity: 0; }
-      55%, 73% { opacity: 1; }
-      80%, 100% { opacity: 0; }
-    }
-
-    @keyframes coffeeCarry {
-      0%, 75% { transform: translateX(0); }
-      87%, 97% { transform: translateX(-225px); }
-      100% { transform: translateX(0); }
-    }
-
-    @keyframes cushionTidy {
-      0%, 18% { transform: rotate(-24deg); }
-      35%, 95% { transform: rotate(0deg); }
-      100% { transform: rotate(-24deg); }
-    }
-
-    @keyframes tidyBook {
-      0%, 12% { transform: translate(0, 0); }
-      30%, 95% { transform: translate(165px, -75px); }
-      100% { transform: translate(0, 0); }
-    }
-
-    @keyframes phoneMove {
-      0%, 45% { transform: translate(0, 0); }
-      65%, 95% { transform: translate(-140px, 10px); }
-      100% { transform: translate(0, 0); }
-    }
-
-    @keyframes warmLamp {
-      0%, 70% { opacity: .08; }
-      80%, 95% { opacity: .8; }
-      100% { opacity: .08; }
-    }
-
-    @keyframes doneBadge {
-      0%, 75% {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-      82%, 96% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      100% { opacity: 0; }
-    }
-
-    /* ---------- Reduced Motion ---------- */
-
-    .motion-note {
-      display: none;
-      text-align: center;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-      margin: -8px auto 22px;
-      max-width: 600px;
-    }
-
-    .motion-note button {
-      margin: 6px 0 0 8px;
-      padding: 7px 14px;
-      font-size: 13px;
-      background: transparent;
-      color: var(--green);
-      border: 1px solid var(--green);
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      body:not(.motion-ok) .scene * {
-        animation: none !important;
-      }
-
-      body:not(.motion-ok) .motion-note {
-        display: block;
-      }
-    }
-
-    /* ---------- Responsive Layout ---------- */
-
-    @media (max-width: 900px) {
-      .video-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 760px) {
-      .about-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-      }
-    }
-
-    @media (max-width: 650px) {
-      body {
-        padding: 10px 8px 30px;
-      }
-
-      .box {
-        padding: 16px;
-      }
-
-      .login button {
-        display: block;
-        margin: 12px auto 0;
-      }
-
-      figcaption {
-        padding: 14px 15px 17px;
-      }
-
-      .video-grid {
-        gap: 12px;
-      }
-    }
-
-    @media (max-width: 430px) {
-      .video-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111111">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Nader | Support Worker Tutorials</title>
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #111;
+  --panel: #1c1c1c;
+  --tile: #222;
+  --line: #333;
+  --green: #00ff51;
+  --text: #f4f6f5;
+  --muted: #b8c2bc;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-touch-callout: none;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 22px 12px 48px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.box {
+  max-width: 1200px;
+  margin: auto;
+  padding: clamp(18px, 4vw, 32px);
+  background: var(--panel);
+  border: 1px solid #2b2b2b;
+  border-radius: 18px;
+}
+
+h1 {
+  font-size: clamp(24px, 4.5vw, 32px);
+  text-align: center;
+  margin: 0 0 12px;
+}
+
+.warning-text {
+  color: var(--green);
+  font-size: clamp(14px, 2vw, 17px);
+  font-weight: 700;
+  line-height: 1.55;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 26px;
+}
+
+/* LOGIN */
+
+.login {
+  text-align: center;
+  padding: 12px 0 24px;
+}
+
+.login label {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.login input {
+  width: min(100%, 320px);
+  font: inherit;
+  font-size: 17px;
+  padding: 13px 15px;
+  color: white;
+  background: #141414;
+  border: 1px solid #555;
+  border-radius: 10px;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  background: var(--green);
+  color: #052b12;
+  padding: 13px 23px;
+  margin-left: 8px;
+}
+
+button:hover {
+  filter: brightness(1.15);
+}
+
+.error {
+  color: #ff9494;
+  min-height: 22px;
+  margin: 10px 0 0;
+}
+
+/* LOGIN SESSION */
+
+.session-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding: 11px 14px;
+  background: #14231a;
+  border: 1px solid #254c32;
+  border-radius: 10px;
+}
+
+.session-status {
+  font-size: 13px;
+  color: #a8e8bc;
+}
+
+.logout-button {
+  font-size: 13px;
+  background: #222;
+  border: 1px solid #555;
+  color: #eee;
+  padding: 8px 15px;
+  margin: 0;
+}
+
+.logout-button:hover {
+  background: #522626;
+  border-color: #ff6666;
+}
+
+/* EIGHT VIDEO BOXES */
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.video-container {
+  min-width: 0;
+  background: var(--tile);
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  overflow: hidden;
+}
+
+.video-container:hover {
+  border-color: #408355;
+}
+
+.video-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 54px;
+  padding: 10px 8px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.player-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #000;
+  isolation: isolate;
+}
+
+.video-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  background: #050505;
+}
+
+/* COVER GOOGLE DRIVE POP-OUT BUTTON */
+
+.drive-blocker {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 58px;
+  height: 58px;
+  background: #000;
+  z-index: 100;
+  pointer-events: auto;
+  cursor: default;
+  border-bottom-left-radius: 8px;
+}
+
+.video-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 39px;
+  padding: 7px 10px;
+  border-top: 1px solid var(--line);
+}
+
+.video-number {
+  font-size: 11px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: #89988e;
+}
+
+.fullscreen-button {
+  margin: 0;
+  padding: 5px 9px;
+  font-size: 11px;
+  color: #d5eadb;
+  background: #303b33;
+  border: 1px solid #455b4c;
+  border-radius: 5px;
+}
+
+.fullscreen-button:hover {
+  background: #345440;
+}
+
+/* WEBSITE-CONTROLLED FULLSCREEN */
+
+.player-wrapper:fullscreen {
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+.player-wrapper:fullscreen .video-frame {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.exit-fullscreen {
+  display: none;
+  position: absolute;
+  bottom: 65px;
+  right: 12px;
+  z-index: 101;
+  color: #fff;
+  background: rgba(25,25,25,.92);
+  border: 1px solid #666;
+  padding: 10px 15px;
+  margin: 0;
+}
+
+.player-wrapper:fullscreen .exit-fullscreen {
+  display: block;
+}
+
+/* PRIVATE VIDEO WATERMARK */
+
+.video-watermark {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  z-index: 10;
+  color: rgba(255,255,255,.62);
+  background: rgba(0,0,0,.28);
+  font-size: 9px;
+  letter-spacing: .6px;
+  padding: 5px 7px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.video-placeholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #101412;
+  color: #849088;
+  font-size: 12px;
+  text-align: center;
+  padding: 12px;
+}
+
+.play-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #3b5143;
+  border-radius: 50%;
+  color: #669b75;
+  font-size: 20px;
+}
+
+/* ABOUT NADER */
+
+.about-section {
+  margin-top: 38px;
+  border-top: 1px solid var(--line);
+  padding-top: 30px;
+}
+
+.about-section h2 {
+  font-size: clamp(23px, 4vw, 29px);
+  text-align: center;
+  color: var(--green);
+  margin: 0 0 10px;
+}
+
+.about-intro {
+  color: var(--muted);
+  line-height: 1.6;
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto 26px;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.info-card {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--tile);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.scene {
+  position: relative;
+  overflow: hidden;
+  background: #0f171b;
+  border-bottom: 1px solid #2c2c2c;
+  contain: paint;
+}
+
+.scene svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
+figcaption {
+  padding: 15px 18px 19px;
+}
+
+figcaption h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  line-height: 1.3;
+  margin: 0 0 8px;
+}
+
+.num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0,255,81,.12);
+  border: 1px solid rgba(0,255,81,.5);
+  color: var(--green);
+  font-size: 13px;
+}
+
+figcaption p {
+  color: #d3dad6;
+  line-height: 1.55;
+  font-size: 14.5px;
+  margin: 0;
+}
+
+.summary-note {
+  text-align: center;
+  margin: 24px 0 0;
+  padding: 17px;
+  border-radius: 12px;
+  border: 1px solid #1f5a33;
+  background: #12261a;
+  color: #eafff0;
+  line-height: 1.55;
+}
+
+/* ANIMATION ENGINE */
+
+.scene svg * {
+  transform-box: view-box;
+}
+
+.scene .a {
+  animation-duration: 15s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+
+.scene.paused *,
+.tab-hidden .scene * {
+  animation-play-state: paused !important;
+}
+
+@keyframes enter {
+  0%, 5% { transform: translateX(70px); opacity: 0; }
+  15% { opacity: 1; }
+  30%, 90% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(70px); opacity: 0; }
+}
+
+@keyframes door {
+  0%, 5%, 65%, 100% { transform: scaleX(1); }
+  20%, 40% { transform: scaleX(.12); }
+}
+
+@keyframes bag {
+  0%, 10% { transform: translate(70px,-10px); }
+  35% { transform: translate(0,-10px); }
+  55%, 95% { transform: translate(0,0); }
+  100% { transform: translate(70px,-10px); }
+}
+
+@keyframes speech1 {
+  0%, 10% { opacity: 0; }
+  15%, 43% { opacity: 1; }
+  48%, 100% { opacity: 0; }
+}
+
+@keyframes speech2 {
+  0%, 48% { opacity: 0; }
+  53%, 90% { opacity: 1; }
+  95%, 100% { opacity: 0; }
+}
+
+@keyframes handLeft {
+  0%, 10% { transform: translateX(-35px); }
+  25% { transform: translateX(0); }
+  35% { transform: translate(8px,-4px); }
+  40% { transform: translate(-8px,4px); }
+  45% { transform: translate(8px,-4px); }
+  50% { transform: translate(-8px,4px); }
+  55% { transform: translate(8px,-4px); }
+  65%, 85% { transform: translateX(0); }
+  100% { transform: translateX(-35px); }
+}
+
+@keyframes handRight {
+  0%, 10% { transform: translateX(35px); }
+  25% { transform: translateX(0); }
+  35% { transform: translate(-8px,4px); }
+  40% { transform: translate(8px,-4px); }
+  45% { transform: translate(-8px,4px); }
+  50% { transform: translate(8px,-4px); }
+  55% { transform: translate(-8px,4px); }
+  65%, 85% { transform: translateX(0); }
+  100% { transform: translateX(35px); }
+}
+
+@keyframes water {
+  0%, 7%, 25%, 60%, 90%, 100% { opacity: 0; }
+  12%, 22%, 65%, 85% { opacity: 1; }
+}
+
+@keyframes bubbles {
+  0%, 26%, 65%, 100% { opacity: 0; }
+  35%, 58% { opacity: 1; }
+}
+
+@keyframes steps {
+  0%, 15% { transform: translateX(0); }
+  17%, 27% { transform: translateX(72px); }
+  29%, 58% { transform: translateX(144px); }
+  60%, 75% { transform: translateX(216px); }
+  77%, 87% { transform: translateX(288px); }
+  89%, 100% { transform: translateX(360px); }
+}
+
+@keyframes blind {
+  0%, 5%, 100% { transform: scaleY(.12); }
+  15%, 95% { transform: scaleY(1); }
+}
+
+@keyframes groom {
+  0%, 45%, 65%, 85%, 100% { transform: translateX(0); }
+  55%, 75% { transform: translateX(-35px); }
+}
+
+@keyframes stretch {
+  0%, 15%, 65%, 100% { transform: rotate(0); }
+  35%, 48% { transform: rotate(-40deg); }
+}
+
+@keyframes tension {
+  0%, 15%, 100% { transform: scaleX(.95); fill: #ff7045; }
+  50% { transform: scaleX(.55); fill: #ffcc55; }
+  85%, 95% { transform: scaleX(.18); fill: #00ff51; }
+}
+
+@keyframes massage {
+  0%, 60%, 100% { opacity: 0; }
+  70%, 90% { opacity: .85; }
+}
+
+@keyframes pour {
+  0%, 48%, 80%, 100% { opacity: 0; }
+  55%, 73% { opacity: 1; }
+}
+
+@keyframes carry {
+  0%, 75%, 100% { transform: translateX(0); }
+  87%, 97% { transform: translateX(-225px); }
+}
+
+@keyframes cushion {
+  0%, 18%, 100% { transform: rotate(-24deg); }
+  35%, 95% { transform: rotate(0); }
+}
+
+@keyframes book {
+  0%, 12%, 100% { transform: translate(0,0); }
+  30%, 95% { transform: translate(165px,-75px); }
+}
+
+@keyframes phone {
+  0%, 45%, 100% { transform: translate(0,0); }
+  65%, 95% { transform: translate(-140px,10px); }
+}
+
+@keyframes lamp {
+  0%, 70%, 100% { opacity: .08; }
+  80%, 95% { opacity: .8; }
+}
+
+@keyframes done {
+  0%, 75%, 100% { opacity: 0; }
+  82%, 96% { opacity: 1; }
+}
+
+.motion-note {
+  display: none;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0 auto 22px;
+}
+
+.motion-note button {
+  padding: 7px 14px;
+  font-size: 13px;
+  background: transparent;
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:not(.motion-ok) .scene * {
+    animation: none !important;
+  }
+
+  body:not(.motion-ok) .motion-note {
+    display: block;
+  }
+}
+
+/* RESPONSIVE DESIGN */
+
+@media (max-width: 900px) {
+  .video-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 650px) {
+  body {
+    padding: 10px 8px 30px;
+  }
+
+  .box {
+    padding: 16px;
+  }
+
+  .login button {
+    display: block;
+    margin: 12px auto 0;
+  }
+
+  .video-grid {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 430px) {
+  .video-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
 </head>
 
 <body>
 
-  <!-- Reusable SVG illustrations -->
+<!-- REUSABLE ANIMATION GRAPHICS -->
 
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="0"
-    height="0"
-    aria-hidden="true"
-    style="position:absolute;overflow:hidden;"
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="0" height="0"
+     aria-hidden="true"
+     style="position:absolute;overflow:hidden">
+
+<defs>
+
+<linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#263640"/>
+  <stop offset="1" stop-color="#19272e"/>
+</linearGradient>
+
+<radialGradient id="glow">
+  <stop offset="0" stop-color="#ffd58a" stop-opacity=".65"/>
+  <stop offset="1" stop-color="#ffd58a" stop-opacity="0"/>
+</radialGradient>
+
+<symbol id="room" viewBox="0 0 480 270">
+  <rect width="480" height="210" fill="url(#wall)"/>
+  <rect y="206" width="480" height="64" fill="#26373e"/>
+  <path d="M0 230H480M0 253H480"
+        stroke="#30434c" stroke-width="2"/>
+  <rect y="202" width="480" height="5" fill="#3b4c55"/>
+  <ellipse cx="240" cy="244" rx="170" ry="16" fill="#304750"/>
+</symbol>
+
+<symbol id="window" viewBox="0 0 100 100">
+  <rect x="4" y="4" width="92" height="92" rx="4"
+        fill="#3c6380" stroke="#647c88" stroke-width="5"/>
+  <path d="M50 4V96M4 50H96"
+        stroke="#647c88" stroke-width="3"/>
+  <circle cx="72" cy="23" r="10" fill="#f4e7bd"/>
+  <path d="M8 82L35 59L55 78L79 58L92 82V92H8Z"
+        fill="#496f72"/>
+</symbol>
+
+<symbol id="plant" viewBox="0 0 60 100">
+  <path d="M12 70H48L43 96H17Z" fill="#c3d1d4"/>
+  <path d="M30 73Q5 37 20 10Q35 39 30 73" fill="#4fbf7a"/>
+  <path d="M30 73Q53 33 45 5Q26 34 30 73" fill="#318953"/>
+  <path d="M30 70Q5 65 2 40Q25 44 30 70" fill="#46a66b"/>
+</symbol>
+
+<symbol id="nader" viewBox="0 0 150 180">
+  <rect x="22" y="60" width="12" height="76" rx="4"
+        fill="#34495a"/>
+  <path d="M27 133H104L120 160H136"
+        stroke="#9fb4bf" stroke-width="6" fill="none"
+        stroke-linecap="round"/>
+  <path d="M40 126Q33 85 42 70Q58 52 78 70L88 126Z"
+        fill="#4a6fa5"/>
+  <rect x="28" y="125" width="82" height="12" rx="5"
+        fill="#34495a"/>
+  <path d="M58 133H107L114 160"
+        stroke="#2f3f5f" stroke-width="17"
+        fill="none" stroke-linecap="round"/>
+  <ellipse cx="123" cy="163" rx="13" ry="6" fill="#18242b"/>
+  <circle cx="48" cy="150" r="28"
+          fill="#233039" stroke="#a2b9c3" stroke-width="5"/>
+  <path d="M48 125V175M23 150H73M30 132L66 168M66 132L30 168"
+        stroke="#5d7480" stroke-width="1.5"/>
+  <circle cx="48" cy="150" r="5" fill="#a9bcc4"/>
+  <circle cx="119" cy="173" r="7" fill="#6e8792"/>
+  <path d="M75 82Q82 109 101 111"
+        stroke="#4a6fa5" stroke-width="12"
+        fill="none" stroke-linecap="round"/>
+  <circle cx="103" cy="111" r="6" fill="#e2a882"/>
+  <rect x="57" y="49" width="13" height="18" fill="#c98f6d"/>
+  <circle cx="64" cy="37" r="21" fill="#e2a882"/>
+  <path d="M43 35Q42 9 66 10Q88 11 87 29Q76 19 60 22Q50 24 43 35Z"
+        fill="#221d1b"/>
+  <circle cx="48" cy="39" r="4" fill="#d89a74"/>
+  <ellipse cx="70" cy="37" rx="2.2" ry="2.7" fill="#172027"/>
+  <ellipse cx="81" cy="37" rx="2.2" ry="2.7" fill="#172027"/>
+  <path d="M70 48Q77 54 84 47"
+        stroke="#7c3b2c" stroke-width="2"
+        fill="none" stroke-linecap="round"/>
+</symbol>
+
+<symbol id="worker" viewBox="0 0 100 180">
+  <path d="M42 122V167M58 122V167"
+        stroke="#304760" stroke-width="13" stroke-linecap="round"/>
+  <ellipse cx="36" cy="171" rx="12" ry="6" fill="#172027"/>
+  <ellipse cx="53" cy="171" rx="12" ry="6" fill="#172027"/>
+  <path d="M29 126L33 65Q35 53 50 53Q65 53 67 65L71 126Z"
+        fill="#22b573"/>
+  <path d="M42 54L50 64L58 54" fill="#e9f7ef"/>
+  <rect x="46" y="76" width="10" height="13" rx="2" fill="#eef5f1"/>
+  <path d="M35 68L24 111M65 68L75 110"
+        stroke="#e6b08c" stroke-width="9" stroke-linecap="round"/>
+  <path d="M35 65L31 80M65 65L69 80"
+        stroke="#22b573" stroke-width="12" stroke-linecap="round"/>
+  <rect x="44" y="42" width="12" height="15" fill="#d39a76"/>
+  <circle cx="50" cy="32" r="19" fill="#e6b08c"/>
+  <path d="M31 30Q30 5 52 7Q72 8 71 29Q65 17 50 19Q37 20 31 30Z"
+        fill="#3a2a22"/>
+  <circle cx="70" cy="24" r="8" fill="#3a2a22"/>
+  <ellipse cx="40" cy="32" rx="2.2" ry="2.6" fill="#1b1f24"/>
+  <ellipse cx="49" cy="32" rx="2.2" ry="2.6" fill="#1b1f24"/>
+  <path d="M39 42Q45 48 51 42"
+        stroke="#7a3d2e" stroke-width="2" fill="none"/>
+</symbol>
+
+<symbol id="mug" viewBox="0 0 40 40">
+  <rect x="4" y="6" width="25" height="28" rx="5" fill="#eef4f2"/>
+  <path d="M29 12Q42 11 37 25Q34 29 29 27"
+        stroke="#eef4f2" stroke-width="4" fill="none"/>
+  <ellipse cx="16.5" cy="8" rx="10" ry="3" fill="#71492e"/>
+</symbol>
+
+</defs>
+</svg>
+
+<main class="box">
+
+<h1>Tutorial Videos</h1>
+
+<div class="warning-text">
+  Notice: Unauthorized recording, copying, downloading, or
+  sharing of these videos may be investigated and used as
+  evidence in legal proceedings.
+</div>
+
+<!-- PASSWORD PAGE -->
+
+<form class="login" id="loginSection">
+
+  <label for="passwordInput">
+    Enter the password to view the tutorials
+  </label>
+
+  <input
+    type="password"
+    id="passwordInput"
+    placeholder="Password"
+    autocomplete="off"
+    required
   >
-    <defs>
 
-      <linearGradient id="roomWall" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#263640"/>
-        <stop offset="1" stop-color="#19272e"/>
-      </linearGradient>
+  <button type="submit">Enter</button>
 
-      <radialGradient id="lampGlow">
-        <stop offset="0" stop-color="#ffd58a" stop-opacity=".7"/>
-        <stop offset="1" stop-color="#ffd58a" stop-opacity="0"/>
-      </radialGradient>
+  <p id="errorMessage"
+     class="error"
+     role="alert"
+     aria-live="polite"></p>
 
-      <symbol id="room" viewBox="0 0 480 270">
-        <rect width="480" height="210" fill="url(#roomWall)"/>
-        <rect y="206" width="480" height="64" fill="#26373e"/>
-        <path d="M0 230H480M0 253H480" stroke="#30434c" stroke-width="2"/>
-        <rect y="202" width="480" height="5" fill="#3b4c55"/>
-        <ellipse cx="240" cy="244" rx="170" ry="16" fill="#304750"/>
-      </symbol>
+</form>
 
-      <symbol id="window" viewBox="0 0 100 100">
-        <rect x="4" y="4" width="92" height="92" rx="4"
-          fill="#3c6380" stroke="#647c88" stroke-width="5"/>
-        <path d="M50 4V96M4 50H96"
-          stroke="#647c88" stroke-width="3"/>
-        <circle cx="72" cy="23" r="10" fill="#f4e7bd"/>
-        <path d="M8 82L35 59L55 78L79 58L92 82V92H8Z"
-          fill="#496f72"/>
-      </symbol>
+<!-- WEBSITE CONTENT -->
 
-      <symbol id="plant" viewBox="0 0 60 100">
-        <path d="M12 70H48L43 96H17Z" fill="#c3d1d4"/>
-        <path d="M30 73Q5 37 20 10Q35 39 30 73"
-          fill="#4fbf7a"/>
-        <path d="M30 73Q53 33 45 5Q26 34 30 73"
-          fill="#318953"/>
-        <path d="M30 70Q5 65 2 40Q25 44 30 70"
-          fill="#46a66b"/>
-      </symbol>
+<section id="videoSection" hidden>
 
-      <symbol id="nader" viewBox="0 0 150 180">
-        <rect x="22" y="60" width="12" height="76" rx="4"
-          fill="#34495a"/>
+<div class="session-bar">
 
-        <path d="M27 133H104L120 160H136"
-          stroke="#9fb4bf"
-          stroke-width="6"
-          fill="none"
-          stroke-linecap="round"
-          stroke-linejoin="round"/>
+  <span class="session-status" id="sessionStatus">
+    Logged in
+  </span>
 
-        <path d="M40 126Q33 85 42 70Q58 52 78 70L88 126Z"
-          fill="#4a6fa5"/>
-
-        <rect x="28" y="125" width="82" height="12" rx="5"
-          fill="#34495a"/>
-
-        <path d="M58 133H107L114 160"
-          stroke="#2f3f5f"
-          stroke-width="17"
-          fill="none"
-          stroke-linecap="round"
-          stroke-linejoin="round"/>
-
-        <ellipse cx="123" cy="163" rx="13" ry="6"
-          fill="#18242b"/>
-
-        <circle cx="48" cy="150" r="28"
-          fill="#233039"
-          stroke="#a2b9c3"
-          stroke-width="5"/>
-
-        <path d="M48 125V175M23 150H73M30 132L66 168M66 132L30 168"
-          stroke="#5d7480" stroke-width="1.5"/>
-
-        <circle cx="48" cy="150" r="5" fill="#a9bcc4"/>
-        <circle cx="119" cy="173" r="7" fill="#6e8792"/>
-
-        <path d="M75 82Q82 109 101 111"
-          stroke="#4a6fa5"
-          stroke-width="12"
-          fill="none"
-          stroke-linecap="round"/>
-
-        <circle cx="103" cy="111" r="6" fill="#e2a882"/>
-        <rect x="57" y="49" width="13" height="18" fill="#c98f6d"/>
-
-        <circle cx="64" cy="37" r="21" fill="#e2a882"/>
-
-        <path d="M43 35Q42 9 66 10Q88 11 87 29Q76 19 60 22Q50 24 43 35Z"
-          fill="#221d1b"/>
-
-        <circle cx="48" cy="39" r="4" fill="#d89a74"/>
-
-        <ellipse cx="70" cy="37" rx="2.2" ry="2.7" fill="#172027"/>
-        <ellipse cx="81" cy="37" rx="2.2" ry="2.7" fill="#172027"/>
-
-        <path d="M66 30H74M77 30H84"
-          stroke="#221d1b"
-          stroke-width="2"
-          stroke-linecap="round"/>
-
-        <path d="M70 48Q77 54 84 47"
-          stroke="#7c3b2c"
-          stroke-width="2"
-          fill="none"
-          stroke-linecap="round"/>
-      </symbol>
-
-      <symbol id="worker" viewBox="0 0 100 180">
-
-        <path d="M42 122V167M58 122V167"
-          stroke="#304760"
-          stroke-width="13"
-          stroke-linecap="round"/>
-
-        <ellipse cx="36" cy="171" rx="12" ry="6" fill="#172027"/>
-        <ellipse cx="53" cy="171" rx="12" ry="6" fill="#172027"/>
-
-        <path d="M29 126L33 65Q35 53 50 53Q65 53 67 65L71 126Z"
-          fill="#22b573"/>
-
-        <path d="M34 121H67V130H34Z" fill="#304760"/>
-
-        <path d="M42 54L50 64L58 54"
-          fill="#e9f7ef"/>
-
-        <path d="M44 61L50 78L56 61"
-          stroke="#0f6b40"
-          stroke-width="1.5"
-          fill="none"/>
-
-        <rect x="46" y="76" width="10" height="13" rx="2"
-          fill="#eef5f1"/>
-
-        <path d="M35 68L24 111"
-          stroke="#e6b08c"
-          stroke-width="9"
-          stroke-linecap="round"/>
-
-        <path d="M35 65L31 80"
-          stroke="#22b573"
-          stroke-width="12"
-          stroke-linecap="round"/>
-
-        <path d="M65 68L75 110"
-          stroke="#d9a07c"
-          stroke-width="9"
-          stroke-linecap="round"/>
-
-        <path d="M65 65L69 80"
-          stroke="#1a9a5f"
-          stroke-width="12"
-          stroke-linecap="round"/>
-
-        <rect x="44" y="42" width="12" height="15" fill="#d39a76"/>
-        <circle cx="50" cy="32" r="19" fill="#e6b08c"/>
-
-        <path d="M31 30Q30 5 52 7Q72 8 71 29Q65 17 50 19Q37 20 31 30Z"
-          fill="#3a2a22"/>
-
-        <circle cx="70" cy="24" r="8" fill="#3a2a22"/>
-
-        <ellipse cx="40" cy="32" rx="2.2" ry="2.6" fill="#1b1f24"/>
-        <ellipse cx="49" cy="32" rx="2.2" ry="2.6" fill="#1b1f24"/>
-
-        <path d="M39 42Q45 48 51 42"
-          stroke="#7a3d2e"
-          stroke-width="2"
-          fill="none"
-          stroke-linecap="round"/>
-      </symbol>
-
-      <symbol id="mug" viewBox="0 0 40 40">
-        <rect x="4" y="6" width="25" height="28" rx="5" fill="#eef4f2"/>
-        <path d="M29 12Q42 11 37 25Q34 29 29 27"
-          stroke="#eef4f2" stroke-width="4" fill="none"/>
-        <ellipse cx="16.5" cy="8" rx="10" ry="3" fill="#71492e"/>
-        <path d="M10 8Q16 4 23 8"
-          stroke="#dfbb90" stroke-width="1.5" fill="none"/>
-      </symbol>
-
-    </defs>
-  </svg>
-
-  <main class="box">
-
-    <h1>Tutorial Videos</h1>
-
-    <div class="warning-text">
-      Notice: Unauthorized recording, copying, downloading,
-      or sharing of these videos may be investigated and
-      used as evidence in legal proceedings.
-    </div>
-
-    <!-- Password Page -->
-
-    <form class="login" id="loginSection">
-
-      <label for="passwordInput">
-        Enter the password to view the tutorials
-      </label>
-
-      <input
-        type="password"
-        id="passwordInput"
-        placeholder="Password"
-        autocomplete="off"
-        required
-      >
-
-      <button type="submit">Enter</button>
-
-      <p
-        id="errorMessage"
-        class="error"
-        role="alert"
-        aria-live="polite"
-      ></p>
-
-    </form>
-
-    <!-- Protected Page Content -->
-
-    <section id="videoSection" hidden>
-
-      <div class="session-bar">
-
-        <span class="session-status" id="sessionStatus">
-          Logged in
-        </span>
-
-        <button
-          type="button"
+  <button type="button"
           id="logoutButton"
-          class="logout-button"
-        >
-          Log out
-        </button>
+          class="logout-button">
+    Log out
+  </button>
 
-      </div>
+</div>
 
-      <!-- All Eight Video Boxes Are Generated Here -->
+<div class="video-grid" id="videoGrid"></div>
 
-      <div class="video-grid" id="videoGrid"></div>
+<!-- ABOUT NADER -->
 
-      <!-- A Little About Nader -->
+<section class="about-section">
 
-      <section class="about-section" aria-labelledby="aboutTitle">
+<h2>A Little About Nader</h2>
 
-        <h2 id="aboutTitle">A Little About Nader</h2>
+<p class="about-intro">
+  Nader is clean, quiet, and respectful.
+  He values a comfortable, hygienic home and
+  support workers who communicate openly.
+</p>
 
-        <p class="about-intro">
-          Nader is clean, quiet, and respectful.
-          He values a comfortable, hygienic home and
-          support workers who communicate openly.
-        </p>
+<p class="motion-note">
+  Your device has reduced motion turned on.
+  <button type="button" id="motionButton">
+    Play animations
+  </button>
+</p>
 
-        <p class="motion-note">
-          Your device has reduced motion turned on,
-          so these scenes are shown as still pictures.
+<div class="about-grid">
 
-          <button type="button" id="motionButton">
-            Play animations
-          </button>
-        </p>
+<!-- ANIMATION 1 -->
 
-        <div class="about-grid">
+<figure class="info-card">
 
-          <!-- Scene 1: Noise & Home Environment -->
+<div class="scene paused">
 
-          <figure class="info-card">
+<svg viewBox="0 0 480 270"
+     role="img"
+     aria-label="A support worker enters quietly and closes the door gently">
 
-            <div class="scene paused">
+  <use href="#room" width="480" height="270"/>
+  <use href="#window" x="24" y="45" width="96" height="96"/>
 
-              <svg viewBox="0 0 480 270"
-                role="img"
-                aria-label="A support worker enters quietly, closes the door gently and sets a bag down carefully."
-                font-family="Arial, Helvetica, sans-serif">
+  <circle cx="215" cy="100" r="85" fill="url(#glow)"/>
+  <path d="M215 90V207" stroke="#83979f" stroke-width="4"/>
+  <path d="M193 90H237L227 60H203Z" fill="#ebc77d"/>
 
-                <use href="#room" width="480" height="270"/>
-                <use href="#window" x="24" y="45" width="96" height="96"/>
+  <rect x="377" y="55" width="76" height="153" rx="4" fill="#374953"/>
+  <rect x="383" y="61" width="64" height="147" fill="#0b161c"/>
 
-                <circle cx="215" cy="100" r="85" fill="url(#lampGlow)" opacity=".45"/>
+  <g class="a" style="animation-name:door;transform-origin:383px 0">
+    <rect x="383" y="61" width="64" height="147" fill="#8b6a54"/>
+    <rect x="390" y="70" width="50" height="57" rx="3" fill="#9a7760"/>
+    <rect x="390" y="137" width="50" height="61" rx="3" fill="#9a7760"/>
+    <circle cx="437" cy="135" r="4" fill="#f2d38b"/>
+  </g>
 
-                <path d="M215 90V207" stroke="#83979f" stroke-width="4"/>
-                <path d="M193 90H237L227 60H203Z" fill="#ebc77d"/>
-                <ellipse cx="215" cy="207" rx="18" ry="4" fill="#71858c"/>
+  <use href="#nader" x="42" y="88" width="150" height="164"/>
 
-                <rect x="377" y="55" width="76" height="153" rx="4"
-                  fill="#374953"/>
+  <rect x="248" y="191" width="75" height="8" rx="3" fill="#a28465"/>
+  <path d="M254 199V234M317 199V234"
+        stroke="#84694f" stroke-width="6"/>
 
-                <rect x="383" y="61" width="64" height="147" fill="#0b161c"/>
+  <g class="a" style="animation-name:enter">
+    <use href="#worker" x="294" y="75" width="95" height="168"/>
+  </g>
 
-                <g class="a"
-                  style="animation-name:doorMove;transform-origin:383px 0;">
+  <g class="a" style="animation-name:bag">
+    <path d="M270 190L275 161H303L308 190Z" fill="#c9a06a"/>
+    <path d="M281 162Q288 147 296 162"
+          fill="none" stroke="#967047" stroke-width="3"/>
+    <path d="M280 161Q265 145 274 140Q285 148 280 161"
+          fill="#4fbf7a"/>
+  </g>
+
+  <rect x="14" y="12" width="195" height="28" rx="14"
+        fill="#102e1c" stroke="#00ff51"/>
 
-                  <rect x="383" y="61" width="64" height="147" fill="#8b6a54"/>
-                  <rect x="390" y="70" width="50" height="57" rx="3" fill="#9a7760"/>
-                  <rect x="390" y="137" width="50" height="61" rx="3" fill="#9a7760"/>
-                  <circle cx="437" cy="135" r="4" fill="#f2d38b"/>
-
-                </g>
-
-                <use href="#nader" x="42" y="88" width="150" height="164"/>
-
-                <rect x="248" y="191" width="75" height="8" rx="3" fill="#a28465"/>
-                <path d="M254 199V234M317 199V234"
-                  stroke="#84694f" stroke-width="6"/>
-
-                <g class="a" style="animation-name:workerEnter;">
-                  <use href="#worker" x="294" y="75" width="95" height="168"/>
-                </g>
-
-                <g class="a" style="animation-name:bagMove;">
-                  <path d="M270 190L275 161H303L308 190Z" fill="#c9a06a"/>
-                  <path d="M281 162Q288 147 296 162"
-                    fill="none" stroke="#967047" stroke-width="3"/>
-                  <path d="M280 161Q265 145 274 140Q285 148 280 161"
-                    fill="#4fbf7a"/>
-                  <path d="M293 160L299 141L305 143L299 163"
-                    fill="#e0b36b"/>
-                </g>
-
-                <g class="a" style="animation-name:speakTwo;">
-                  <rect x="28" y="48" width="155" height="31" rx="15" fill="#d9ffe5"/>
-                  <text x="105" y="68" text-anchor="middle"
-                    font-size="14" font-weight="700" fill="#11351f">
-                    Thank you!
-                  </text>
-                </g>
-
-                <g>
-                  <rect x="14" y="12" width="195" height="28" rx="14"
-                    fill="#102e1c" stroke="#00ff51"/>
-                  <text x="111" y="30" text-anchor="middle"
-                    fill="#d9ffe5" font-size="13" font-weight="700">
-                    Calm &amp; considerate
-                  </text>
-                </g>
-
-                <g>
-                  <rect x="350" y="12" width="115" height="28" rx="8"
-                    fill="#0e181d"/>
-                  <text x="360" y="30" font-size="10" fill="#a8bbc4">NOISE</text>
-                  <rect x="403" y="28" width="7" height="5" fill="#00ff51"/>
-                  <rect x="414" y="24" width="7" height="9" fill="#00ff51"/>
-                  <rect x="425" y="20" width="7" height="13" fill="#34474f"/>
-                  <rect x="436" y="16" width="7" height="17" fill="#34474f"/>
-                </g>
-
-              </svg>
-
-            </div>
-
-            <figcaption>
-
-              <h3>
-                <span class="num">1</span>
-                Noise &amp; Home Environment
-              </h3>
-
-              <p>
-                Keep the home calm and comfortable.
-                Avoid unnecessary noise and be considerate
-                of the environment.
-              </p>
-
-            </figcaption>
-
-          </figure>
-
-          <!-- Scene 2: Personal Hygiene -->
-
-          <figure class="info-card">
-
-            <div class="scene paused">
-
-              <svg viewBox="0 0 480 270"
-                role="img"
-                aria-label="A support worker washes their hands with soap, rinses, dries their hands and cleans the counter."
-                font-family="Arial, Helvetica, sans-serif">
-
-                <defs>
-                  <pattern id="hygieneTiles"
-                    width="32" height="32"
-                    patternUnits="userSpaceOnUse">
-                    <rect width="32" height="32" fill="#20323c"/>
-                    <path d="M0 0H32M0 0V32" stroke="#344952"/>
-                  </pattern>
-                </defs>
-
-                <rect width="480" height="270" fill="url(#hygieneTiles)"/>
-
-                <rect y="184" width="480" height="86" fill="#293b44"/>
-                <rect x="35" y="197" width="200" height="63" rx="6" fill="#354851"/>
-                <rect x="245" y="197" width="200" height="63" rx="6" fill="#354851"/>
-
-                <rect x="215" y="224" width="12" height="4" rx="2" fill="#8da5af"/>
-                <rect x="253" y="224" width="12" height="4" rx="2" fill="#8da5af"/>
-
-                <rect y="158" width="480" height="27" fill="#c9d8dd"/>
-
-                <ellipse cx="240" cy="174" rx="110" ry="12" fill="#6e929f"/>
-                <ellipse cx="240" cy="174" rx="110" ry="12"
-                  fill="none" stroke="#eff7fa" stroke-width="3"/>
-
-                <path d="M218 154V115Q218 102 232 102H245Q256 102 256 116V125"
-                  stroke="#d7e3e8" stroke-width="10"
-                  fill="none" stroke-linecap="round"/>
-
-                <path d="M218 104L194 96"
-                  stroke="#e5eef2" stroke-width="5" stroke-linecap="round"/>
-
-                <g class="a" style="animation-name:runningWater;">
-
-                  <path d="M256 127V174"
-                    stroke="#79d7ff" stroke-width="9" stroke-linecap="round"/>
-
-                  <path d="M256 130V170"
-                    stroke="#e1f8ff" stroke-width="2"
-                    stroke-dasharray="5 5"/>
-
-                </g>
-
-                <rect x="346" y="115" width="35" height="43" rx="8" fill="#4fc3a1"/>
-                <rect x="352" y="128" width="23" height="14" rx="3" fill="#e6fff3"/>
-                <rect x="359" y="102" width="9" height="15" fill="#e3edf0"/>
-                <rect x="350" y="98" width="23" height="7" rx="3" fill="#f1f8fa"/>
-
-                <circle cx="75" cy="92" r="13"
-                  fill="none" stroke="#9dafb8" stroke-width="4"/>
-
-                <rect x="50" y="103" width="51" height="56" rx="5" fill="#edf4f0"/>
-                <rect x="50" y="144" width="51" height="7" fill="#00c96b"/>
-
-                <g class="a" style="animation-name:handLeft;">
-
-                  <path d="M0 195L183 143"
-                    stroke="#22b573" stroke-width="32" stroke-linecap="round"/>
-
-                  <path d="M165 149L225 134"
-                    stroke="#e6b08c" stroke-width="24" stroke-linecap="round"/>
-
-                  <ellipse cx="229" cy="134" rx="23" ry="15" fill="#e6b08c"/>
-
-                  <path d="M226 128L244 124M229 135L246 131"
-                    stroke="#bb805e" stroke-width="2" stroke-linecap="round"/>
-
-                </g>
-
-                <g class="a" style="animation-name:handRight;">
-
-                  <path d="M480 195L297 143"
-                    stroke="#22b573" stroke-width="32" stroke-linecap="round"/>
-
-                  <path d="M315 149L255 134"
-                    stroke="#e6b08c" stroke-width="24" stroke-linecap="round"/>
-
-                  <ellipse cx="251" cy="134" rx="23" ry="15" fill="#e6b08c"/>
-
-                  <path d="M254 128L236 124M251 135L234 131"
-                    stroke="#bb805e" stroke-width="2" stroke-linecap="round"/>
-
-                </g>
-
-                <g class="a" style="animation-name:bubbles;" fill="#eafaff">
-                  <circle cx="220" cy="120" r="8"/>
-                  <circle cx="236" cy="139" r="10"/>
-                  <circle cx="254" cy="122" r="7"/>
-                  <circle cx="265" cy="139" r="5"/>
-                  <circle cx="237" cy="104" r="6"/>
-                  <circle cx="257" cy="91" r="4"/>
-                  <circle cx="224" cy="94" r="4"/>
-                  <circle cx="211" cy="139" r="5"/>
-                </g>
-
-                <g font-size="11.5" font-weight="700" text-anchor="middle">
-
-                  <g fill="#142229" stroke="#38525e">
-                    <rect x="28" y="12" width="64" height="24" rx="12"/>
-                    <rect x="100" y="12" width="64" height="24" rx="12"/>
-                    <rect x="172" y="12" width="64" height="24" rx="12"/>
-                    <rect x="244" y="12" width="64" height="24" rx="12"/>
-                    <rect x="316" y="12" width="64" height="24" rx="12"/>
-                    <rect x="388" y="12" width="64" height="24" rx="12"/>
-                  </g>
-
-                  <rect class="a"
-                    style="animation-name:hygieneSteps;"
-                    x="28" y="12" width="64" height="24" rx="12"
-                    fill="#00ff51" fill-opacity=".15" stroke="#00ff51"/>
-
-                  <g fill="#e2eeec">
-                    <text x="60" y="28">1 Wet</text>
-                    <text x="132" y="28">2 Soap</text>
-                    <text x="204" y="28">3 Scrub</text>
-                    <text x="276" y="28">4 Rinse</text>
-                    <text x="348" y="28">5 Dry</text>
-                    <text x="420" y="28">6 Clean</text>
-                  </g>
-
-                </g>
-
-                <g>
-                  <circle cx="429" cy="75" r="23" fill="#142229" stroke="#00ff51"/>
-                  <text x="429" y="80" text-anchor="middle"
-                    fill="#d9ffe5" font-size="15" font-weight="700">20s</text>
-                </g>
-
-                <g class="a" style="animation-name:doneBadge;">
-                  <rect x="18" y="230" width="200" height="28" rx="14"
-                    fill="#102e1c" stroke="#00ff51"/>
-                  <text x="118" y="248" text-anchor="middle"
-                    font-size="13" font-weight="700" fill="#d9ffe5">
-                    Clean hands, clean space
-                  </text>
-                </g>
-
-              </svg>
-
-            </div>
-
-            <figcaption>
-
-              <h3>
-                <span class="num">2</span>
-                Personal Hygiene
-              </h3>
-
-              <p>
-                Maintain excellent personal hygiene and
-                keep Nader's home clean and hygienic.
-              </p>
-
-            </figcaption>
-
-          </figure>
-
-          <!-- Scene 3: Personal Care & Grooming -->
-
-          <figure class="info-card">
-
-            <div class="scene paused">
-
-              <svg viewBox="0 0 480 270"
-                role="img"
-                aria-label="A support worker prepares clean grooming equipment, ensures privacy and asks Nader for consent."
-                font-family="Arial, Helvetica, sans-serif">
-
-                <use href="#room" width="480" height="270"/>
-                <use href="#window" x="26" y="43" width="89" height="90"/>
-
-                <g class="a"
-                  style="animation-name:privacyBlind;transform-origin:70px 45px;">
-
-                  <rect x="29" y="46" width="83" height="83" fill="#d9cfbd"/>
-
-                  <path d="M29 58H112M29 70H112M29 82H112M29 94H112M29 106H112M29 118H112"
-                    stroke="#b6ad9c" stroke-width="2"/>
-
-                </g>
-
-                <rect x="408" y="60" width="67" height="146" rx="3" fill="#8a6a54"/>
-                <circle cx="420" cy="131" r="4" fill="#e6c982"/>
-
-                <rect x="420" y="141" width="44" height="26" rx="5"
-                  fill="#102e1c" stroke="#00ff51"/>
-
-                <text x="442" y="157" text-anchor="middle"
-                  font-size="9" fill="#d9ffe5" font-weight="700">PRIVATE</text>
-
-                <use href="#nader" x="38" y="85" width="150" height="165"/>
-                <use href="#worker" x="285" y="70" width="105" height="170"/>
-
-                <path d="M197 186V236M182 236H212"
-                  stroke="#8399a4" stroke-width="5" stroke-linecap="round"/>
-
-                <rect x="172" y="179" width="165" height="8" rx="3" fill="#b9cbd2"/>
-                <rect x="179" y="170" width="107" height="9" rx="3" fill="#e8f0ec"/>
-                <rect x="179" y="175" width="107" height="3" fill="#00c96b"/>
-
-                <path d="M157 162L256 169"
-                  stroke="#e2a882" stroke-width="14" stroke-linecap="round"/>
-
-                <ellipse cx="260" cy="169" rx="13" ry="8" fill="#e2a882"/>
-
-                <g class="a" style="animation-name:groomingTool;">
-
-                  <path d="M320 142L277 158"
-                    stroke="#e6b08c" stroke-width="9" stroke-linecap="round"/>
-
-                  <circle cx="277" cy="158" r="7" fill="#9fc0ff"/>
-
-                  <rect x="264" y="151" width="24" height="13" rx="6" fill="#f1f7f8"/>
-                  <rect x="260" y="150" width="9" height="15" rx="3" fill="#7fd4c8"/>
-
-                  <circle cx="281" cy="157" r="2" fill="#00c96b"/>
-
-                </g>
-
-                <g class="a" style="animation-name:speakOne;">
-                  <rect x="260" y="32" width="200" height="31" rx="15" fill="#eef4f6"/>
-                  <text x="360" y="52" text-anchor="middle"
-                    font-size="14" fill="#19353f" font-weight="700">
-                    Is it okay if I start?
-                  </text>
-                </g>
-
-                <g class="a" style="animation-name:speakTwo;">
-                  <rect x="18" y="32" width="195" height="31" rx="15" fill="#c7f7d8"/>
-                  <text x="115" y="52" text-anchor="middle"
-                    font-size="14" fill="#11351f" font-weight="700">
-                    Yes, go ahead.
-                  </text>
-                </g>
-
-                <g font-size="13" font-weight="700" text-anchor="middle">
-
-                  <rect x="40" y="12" width="125" height="26" rx="13"
-                    fill="#102e1c" stroke="#00ff51"/>
-                  <rect x="177" y="12" width="125" height="26" rx="13"
-                    fill="#102e1c" stroke="#00ff51"/>
-                  <rect x="314" y="12" width="125" height="26" rx="13"
-                    fill="#102e1c" stroke="#00ff51"/>
-
-                  <g fill="#d9ffe5">
-                    <text x="102" y="29">Privacy</text>
-                    <text x="239" y="29">Consent</text>
-                    <text x="376" y="29">Respect</text>
-                  </g>
-
-                </g>
-
-                <g class="a" style="animation-name:doneBadge;">
-                  <rect x="155" y="235" width="170" height="26" rx="13"
-                    fill="#102e1c" stroke="#00ff51"/>
-                  <text x="240" y="252" text-anchor="middle"
-                    font-size="13" fill="#d9ffe5" font-weight="700">
-                    Clean tools, gentle care
-                  </text>
-                </g>
-
-              </svg>
-
-            </div>
-
-            <figcaption>
-
-              <h3>
-                <span class="num">3</span>
-                Personal Care &amp; Grooming
-              </h3>
-
-              <p>
-                Occasional grooming assistance, including
-                waxing or epilating, may be needed.
-                Privacy, consent, and professional
-                boundaries always matter.
-              </p>
-
-            </figcaption>
-
-          </figure>
-
-          <!-- Scene 4: Stretching & Massage -->
-
-          <figure class="info-card">
-
-            <div class="scene paused">
-
-              <svg viewBox="0 0 480 270"
-                role="img"
-                aria-label="A support worker gently supports Nader's leg during stretching and massage, following his instructions."
-                font-family="Arial, Helvetica, sans-serif">
-
-                <use href="#room" width="480" height="270"/>
-                <use href="#window" x="18" y="40" width="84" height="94"/>
-
-                <rect x="365" y="116" width="95" height="6" rx="3" fill="#7d939d"/>
-                <use href="#plant" x="374" y="61" width="31" height="55"/>
-
-                <rect x="420" y="96" width="13" height="20" rx="2" fill="#5aa9e6"/>
-                <rect x="435" y="100" width="12" height="16" rx="2" fill="#e8c27a"/>
-
-                <use href="#nader" x="55" y="74" width="155" height="175"/>
-
-                <path d="M148 194L211 194"
-                  stroke="#34466b" stroke-width="18" stroke-linecap="round"/>
-
-                <g class="a"
-                  style="animation-name:legStretch;transform-origin:211px 194px;">
-
-                  <path d="M211 194L216 236"
-                    stroke="#e2a882" stroke-width="14" stroke-linecap="round"/>
-
-                  <ellipse cx="214" cy="215" rx="8" ry="16"
-                    fill="#ffad61" opacity=".35"/>
-
-                  <path d="M213 231Q215 240 228 240H239Q244 235 236 232Z"
-                    fill="#e9eef0"/>
-
-                </g>
-
-                <g transform="translate(267 105)">
-
-                  <path d="M41 109L20 135H75"
-                    stroke="#304760" stroke-width="14"
-                    fill="none" stroke-linecap="round"
-                    stroke-linejoin="round"/>
-
-                  <ellipse cx="77" cy="136" rx="13" ry="5" fill="#19242a"/>
-
-                  <path d="M19 108L22 51Q40 35 60 51L64 108Z"
-                    fill="#22b573"/>
-
-                  <path d="M34 45L41 54L48 45" fill="#e9f7ef"/>
-                  <rect x="36" y="61" width="11" height="15" rx="2" fill="#eef5f1"/>
-
-                  <rect x="35" y="34" width="12" height="14" fill="#d39a76"/>
-                  <circle cx="41" cy="22" r="18" fill="#e6b08c"/>
-
-                  <path d="M23 21Q22-3 43 0Q63 2 61 20Q48 10 37 11Z"
-                    fill="#3a2a22"/>
-
-                  <circle cx="61" cy="13" r="7" fill="#3a2a22"/>
-                  <circle cx="31" cy="22" r="2" fill="#1b1f24"/>
-                  <circle cx="39" cy="22" r="2" fill="#1b1f24"/>
-
-                  <path d="M31 31Q36 36 42 30"
-                    stroke="#7a3d2e" stroke-width="2" fill="none"/>
-
-                  <path d="M24 59L-20 88L-48 93"
-                    stroke="#e6b08c" stroke-width="10"
-                    fill="none" stroke-linecap="round"/>
-
-                  <path d="M24 58L12 67"
-                    stroke="#22b573" stroke-width="13" stroke-linecap="round"/>
-
-                </g>
-
-                <g class="a" style="animation-name:massageGlow;"
-                  fill="none" stroke="#00ff51" stroke-width="2">
-
-                  <ellipse cx="215" cy="213" rx="18" ry="24"/>
-                  <ellipse cx="215" cy="213" rx="25" ry="31" opacity=".5"/>
-
-                </g>
-
-                <rect x="335" y="12" width="132" height="40" rx="8" fill="#0e181d"/>
-
-                <text x="401" y="27" text-anchor="middle"
-                  font-size="10" fill="#b4c9d0" font-weight="700">
-                  MUSCLE TENSION
-                </text>
-
-                <rect x="347" y="34" width="108" height="8" rx="4" fill="#344750"/>
-
-                <rect class="a"
-                  style="animation-name:tensionBar;transform-origin:347px 0;"
-                  x="347" y="34" width="108" height="8" rx="4" fill="#00ff51"/>
-
-                <g class="a" style="animation-name:speakOne;">
-                  <rect x="254" y="57" width="198" height="29" rx="14" fill="#eef4f6"/>
-                  <text x="353" y="76" text-anchor="middle"
-                    fill="#203943" font-size="13" font-weight="700">
-                    Tell me when to stop.
-                  </text>
-                </g>
-
-                <g class="a" style="animation-name:speakTwo;">
-                  <rect x="18" y="39" width="193" height="29" rx="14" fill="#c7f7d8"/>
-                  <text x="115" y="58" text-anchor="middle"
-                    fill="#11351f" font-size="13" font-weight="700">
-                    That's good, hold there.
-                  </text>
-                </g>
-
-                <g class="a" style="animation-name:doneBadge;">
-                  <rect x="291" y="237" width="174" height="26" rx="13"
-                    fill="#102e1c" stroke="#00ff51"/>
-                  <text x="378" y="254" text-anchor="middle"
-                    font-size="13" fill="#d9ffe5" font-weight="700">
-                    Gentle, comfortable care
-                  </text>
-                </g>
-
-              </svg>
-
-            </div>
-
-            <figcaption>
-
-              <h3>
-                <span class="num">4</span>
-                Stretching &amp; Massage
-              </h3>
-
-              <p>
-                Gentle leg stretching and massage may help
-                with muscle discomfort and spasms.
-                Follow Nader's instructions and agreed care plan.
-              </p>
-
-            </figcaption>
-
-          </figure>
-
-          <!-- Scene 5: Communication -->
-
-          <figure class="info-card">
-
-            <div class="scene paused">
-
-              <svg viewBox="0 0 480 270"
-                role="img"
-                aria-label="A support worker asks Nader how he likes his coffee and prepares it according to his instructions."
-                font-family="Arial, Helvetica, sans-serif">
-
-                <use href="#room" width="480" height="270"/>
-
-                <circle cx="238" cy="56" r="82" fill="url(#lampGlow)" opacity=".4"/>
-                <path d="M238 0V27" stroke="#8b9ca4" stroke-width="3"/>
-                <path d="M220 45H256L249 27H227Z" fill="#efc980"/>
-
-                <use href="#plant" x="243" y="129" width="52" height="80"/>
-
-                <rect x="363" y="158" width="117" height="48" fill="#354953"/>
-                <rect x="370" y="166" width="49" height="34" rx="3" fill="#425862"/>
-                <rect x="424" y="166" width="50" height="34" rx="3" fill="#425862"/>
-                <rect x="358" y="151" width="122" height="9" rx="3" fill="#c7d5dc"/>
-
-                <rect x="382" y="73" width="65" height="79" rx="9"
-                  fill="#2a3036" stroke="#54616a"/>
-
-                <rect x="390" y="82" width="49" height="27" rx="5" fill="#10171c"/>
-
-                <circle cx="401" cy="95" r="6" fill="#71492e"/>
-                <circle cx="415" cy="95" r="6" fill="#e5eee9"/>
-                <circle cx="429" cy="95" r="6" fill="#3c4e55"/>
-
-                <rect x="408" y="112" width="14" height="7" rx="3" fill="#82939a"/>
-
-                <g class="a" style="animation-name:coffeePour;">
-                  <path d="M415 120V133"
-                    stroke="#754522" stroke-width="4" stroke-linecap="round"/>
-                </g>
-
-                <use href="#nader" x="32" y="84" width="145" height="165"/>
-
-                <g class="a" style="animation-name:coffeeCarry;">
-
-                  <use href="#worker" x="280" y="71" width="100" height="170"/>
-                  <use href="#mug" x="395" y="124" width="35" height="30"/>
-
-                </g>
-
-                <g class="a" style="animation-name:speakOne;">
-
-                  <rect x="215" y="22" width="252" height="34" rx="17" fill="#eef4f6"/>
-
-                  <text x="341" y="44" text-anchor="middle"
-                    font-size="14" fill="#203943" font-weight="700">
-                    How do you like your coffee?
-                  </text>
-
-                </g>
-
-                <g class="a" style="animation-name:speakTwo;">
-
-                  <rect x="12" y="19" width="215" height="55" rx="15" fill="#c7f7d8"/>
-
-                  <text x="119" y="41" text-anchor="middle"
-                    fill="#11351f" font-size="13.5" font-weight="700">
-                    Strong, a splash of milk,
-                  </text>
-
-                  <text x="119" y="60" text-anchor="middle"
-                    fill="#11351f" font-size="13.5" font-weight="700">
-                    and no sugar, please.
-                  </text>
-
-                </g>
-
-                <g class="a" style="animation-name:doneBadge;">
-                  <rect x="241" y="236" width="224" height="26" rx="13"
-                    fill="#102e1c" stroke="#00ff51"/>
-                  <text x="353" y="253" text-anchor="middle"
-                    font-size="13" fill="#d9ffe5" font-weight="700">
-                    Asked, listened, got it right
-                  </text>
-                </g>
-
-              </svg>
-
-            </div>
-
-            <figcaption>
-
-              <h3>
-                <span class="num">5</span>
-                Communication
-              </h3>
-
-              <p>
-                Never hesitate to ask questions.
-                Clear, honest communication makes everything easier.
-              </p>
-
-            </figcaption>
-
-          </figure>
-
-          <!-- Scene 6: Respectful & Comfortable Home -->
-
-          <figure class="info-card">
-
-            <div class="scene paused">
-
-              <svg viewBox="0 0 480 270"
-                role="img"
-                aria-label="A support worker tidies the living room, takes care of belongings and asks Nader before moving his phone."
-                font-family="Arial, Helvetica, sans-serif">
-
-                <use href="#room" width="480" height="270"/>
-                <use href="#window" x="17" y="39" width="82" height="82"/>
-
-                <circle class="a"
-                  style="animation-name:warmLamp;"
-                  cx="365" cy="90" r="95" fill="url(#lampGlow)"/>
-
-                <path d="M365 86V209"
-                  stroke="#84979f" stroke-width="4"/>
-
-                <path d="M345 88H385L377 58H353Z" fill="#eac37d"/>
-
-                <ellipse cx="365" cy="209" rx="18" ry="4" fill="#72858e"/>
-
-                <rect x="398" y="50" width="66" height="157" rx="3" fill="#594639"/>
-                <rect x="404" y="55" width="54" height="145" fill="#352923"/>
-
-                <path d="M404 96H458M404 140H458M404 181H458"
-                  stroke="#806753" stroke-width="5"/>
-
-                <g>
-                  <rect x="409" y="67" width="10" height="29" fill="#5aa9e6"/>
-                  <rect x="420" y="73" width="10" height="23" fill="#e8c27a"/>
-                  <rect x="431" y="65" width="11" height="31" fill="#4fbf7a"/>
-                  <rect x="443" y="70" width="11" height="26" fill="#b58ad6"/>
-                  <rect x="409" y="110" width="10" height="30" fill="#e8c27a"/>
-                  <rect x="420" y="114" width="10" height="26" fill="#7fd4c8"/>
-                  <rect x="443" y="109" width="10" height="31" fill="#4fbf7a"/>
-                </g>
-
-                <rect x="206" y="114" width="151" height="66" rx="11" fill="#406473"/>
-                <rect x="199" y="168" width="165" height="26" rx="8" fill="#4f7789"/>
-                <rect x="190" y="145" width="22" height="48" rx="8" fill="#456877"/>
-                <rect x="352" y="145" width="22" height="48" rx="8" fill="#456877"/>
-
-                <g class="a"
-                  style="animation-name:cushionTidy;transform-origin:245px 151px;">
-
-                  <rect x="229" y="135" width="32" height="32" rx="7" fill="#e8c27a"/>
-                  <path d="M235 141L255 161M255 141L235 161"
-                    stroke="#c39b53" stroke-width="1.5"/>
-
-                </g>
-
-                <g class="a"
-                  style="animation-name:cushionTidy;transform-origin:321px 151px;">
-
-                  <rect x="305" y="135" width="32" height="32" rx="7" fill="#7fd4c8"/>
-                  <circle cx="321" cy="151" r="7"
-                    fill="none" stroke="#4ba99b" stroke-width="1.5"/>
-
-                </g>
-
-                <rect x="221" y="192" width="103" height="7" rx="3" fill="#a28465"/>
-
-                <path d="M229 199V234M316 199V234"
-                  stroke="#82664d" stroke-width="5"/>
-
-                <g class="a" style="animation-name:tidyBook;">
-                  <rect x="263" y="182" width="11" height="10" rx="1" fill="#d05a5a"/>
-                  <path d="M265 185H272M265 189H272" stroke="#ffd8ce" stroke-width="1"/>
-                </g>
-
-                <use href="#nader" x="15" y="91" width="141" height="158"/>
-                <use href="#worker" x="278" y="66" width="95" height="170"/>
-
-                <rect x="143" y="180" width="49" height="6" rx="2" fill="#a28465"/>
-
-                <path d="M149 186V230M186 186V230"
-                  stroke="#82664d" stroke-width="4"/>
-
-                <g class="a" style="animation-name:phoneMove;">
-                  <rect x="302" y="161" width="22" height="10" rx="3"
-                    fill="#121b22" stroke="#85949c"/>
-                  <rect x="305" y="163" width="16" height="6" rx="1" fill="#417fa8"/>
-                </g>
-
-                <g class="a" style="animation-name:speakOne;">
-
-                  <rect x="174" y="23" width="291" height="32" rx="16" fill="#eef4f6"/>
-
-                  <text x="319" y="43" text-anchor="middle"
-                    font-size="13.5" fill="#203943" font-weight="700">
-                    Shall I put your phone by you?
-                  </text>
-
-                </g>
-
-                <g class="a" style="animation-name:speakTwo;">
-
-                  <rect x="12" y="32" width="175" height="31" rx="15" fill="#c7f7d8"/>
-
-                  <text x="99" y="52" text-anchor="middle"
-                    font-size="13" fill="#11351f" font-weight="700">
-                    Yes please, thanks!
-                  </text>
-
-                </g>
-
-                <g class="a" style="animation-name:doneBadge;">
-
-                  <rect x="240" y="236" width="225" height="26" rx="13"
-                    fill="#102e1c" stroke="#00ff51"/>
-
-                  <text x="352" y="253" text-anchor="middle"
-                    font-size="13" fill="#d9ffe5" font-weight="700">
-                    Tidy, calm and welcoming
-                  </text>
-
-                </g>
-
-              </svg>
-
-            </div>
-
-            <figcaption>
-
-              <h3>
-                <span class="num">6</span>
-                Respectful &amp; Comfortable Home
-              </h3>
-
-              <p>
-                Treat Nader's home and belongings with care.
-                A tidy, calm, welcoming home helps
-                everyone feel comfortable.
-              </p>
-
-            </figcaption>
-
-          </figure>
-
-        </div>
-
-        <p class="summary-note">
-          Nader appreciates support workers who are clean,
-          respectful, considerate, comfortable with personal
-          care, and happy to communicate openly.
-        </p>
-
-      </section>
-
-    </section>
-
-  </main>
-
-  <script>
-
-    /* ==========================================
-       WEBSITE PASSWORD
-       Change the password here if necessary.
-    ========================================== */
-
-    const correctPassword = "1313";
-
-
-    /* ==========================================
-       LOGIN SESSION DURATION
-       60 minutes = 1 hour
-    ========================================== */
-
-    const sessionMinutes = 60;
-    const sessionDuration = sessionMinutes * 60 * 1000;
-
-    const sessionKey = "naderTutorialSessionExpiryV2";
-
-
-    /* ==========================================
-       EDIT YOUR EIGHT VIDEOS HERE
-
-       Replace each title with your video name.
-       Paste your Google Drive video link
-       between the quotation marks.
-
-       Empty links display "Coming soon".
-    ========================================== */
-
-    const videos = [
-
-      {
-        title: "Personal Care",
-        url: "https://drive.google.com/file/d/1_PB87L1Yps9JgZF0lf3wbN3k7C16MKdD/preview"
-      },
-
-      {
-        title: "Coffee Machine",
-        url: "https://drive.google.com/file/d/1ySDHsKWXPUvpzYmPg4ovQU8EvS0_cIH6/preview"
-      },
-
-      {
-        title: "Video 3",
-        url: ""
-      },
-
-      {
-        title: "Video 4",
-        url: ""
-      },
-
-      {
-        title: "Video 5",
-        url: ""
-      },
-
-      {
-        title: "Video 6",
-        url: ""
-      },
-
-      {
-        title: "Video 7",
-        url: ""
-      },
-
-      {
-        title: "Video 8",
-        url: ""
+  <text x="111" y="30" text-anchor="middle"
+        fill="#d9ffe5" font-size="13" font-weight="700">
+    Calm &amp; considerate
+  </text>
+
+  <g class="a" style="animation-name:speech2">
+    <rect x="28" y="48" width="155" height="31" rx="15" fill="#d9ffe5"/>
+    <text x="105" y="68" text-anchor="middle"
+          font-size="14" font-weight="700" fill="#11351f">
+      Thank you!
+    </text>
+  </g>
+
+</svg>
+
+</div>
+
+<figcaption>
+  <h3><span class="num">1</span>Noise &amp; Home Environment</h3>
+  <p>
+    Keep the home calm and comfortable. Avoid unnecessary
+    noise and be considerate of the environment.
+  </p>
+</figcaption>
+
+</figure>
+
+<!-- ANIMATION 2 -->
+
+<figure class="info-card">
+
+<div class="scene paused">
+
+<svg viewBox="0 0 480 270"
+     role="img"
+     aria-label="Handwashing and personal hygiene">
+
+  <defs>
+    <pattern id="tiles" width="32" height="32" patternUnits="userSpaceOnUse">
+      <rect width="32" height="32" fill="#20323c"/>
+      <path d="M0 0H32M0 0V32" stroke="#344952"/>
+    </pattern>
+  </defs>
+
+  <rect width="480" height="270" fill="url(#tiles)"/>
+
+  <rect y="184" width="480" height="86" fill="#293b44"/>
+  <rect x="35" y="197" width="200" height="63" rx="6" fill="#354851"/>
+  <rect x="245" y="197" width="200" height="63" rx="6" fill="#354851"/>
+
+  <rect y="158" width="480" height="27" fill="#c9d8dd"/>
+  <ellipse cx="240" cy="174" rx="110" ry="12"
+           fill="#6e929f" stroke="#eff7fa" stroke-width="3"/>
+
+  <path d="M218 154V115Q218 102 232 102H245Q256 102 256 116V125"
+        stroke="#d7e3e8" stroke-width="10"
+        fill="none" stroke-linecap="round"/>
+
+  <path d="M218 104L194 96"
+        stroke="#e5eef2" stroke-width="5" stroke-linecap="round"/>
+
+  <path class="a" style="animation-name:water"
+        d="M256 127V174"
+        stroke="#79d7ff" stroke-width="9" stroke-linecap="round"/>
+
+  <rect x="346" y="115" width="35" height="43" rx="8" fill="#4fc3a1"/>
+  <rect x="352" y="128" width="23" height="14" rx="3" fill="#e6fff3"/>
+  <rect x="359" y="102" width="9" height="15" fill="#e3edf0"/>
+  <rect x="350" y="98" width="23" height="7" rx="3" fill="#f1f8fa"/>
+
+  <rect x="50" y="103" width="51" height="56" rx="5" fill="#edf4f0"/>
+  <rect x="50" y="144" width="51" height="7" fill="#00c96b"/>
+
+  <g class="a" style="animation-name:handLeft">
+    <path d="M0 195L183 143"
+          stroke="#22b573" stroke-width="32" stroke-linecap="round"/>
+    <path d="M165 149L225 134"
+          stroke="#e6b08c" stroke-width="24" stroke-linecap="round"/>
+    <ellipse cx="229" cy="134" rx="23" ry="15" fill="#e6b08c"/>
+  </g>
+
+  <g class="a" style="animation-name:handRight">
+    <path d="M480 195L297 143"
+          stroke="#22b573" stroke-width="32" stroke-linecap="round"/>
+    <path d="M315 149L255 134"
+          stroke="#e6b08c" stroke-width="24" stroke-linecap="round"/>
+    <ellipse cx="251" cy="134" rx="23" ry="15" fill="#e6b08c"/>
+  </g>
+
+  <g class="a" style="animation-name:bubbles" fill="#eafaff">
+    <circle cx="220" cy="120" r="8"/>
+    <circle cx="236" cy="139" r="10"/>
+    <circle cx="254" cy="122" r="7"/>
+    <circle cx="265" cy="139" r="5"/>
+    <circle cx="237" cy="104" r="6"/>
+    <circle cx="257" cy="91" r="4"/>
+    <circle cx="224" cy="94" r="4"/>
+  </g>
+
+  <g font-size="11.5" font-weight="700" text-anchor="middle">
+    <g fill="#142229" stroke="#38525e">
+      <rect x="28" y="12" width="64" height="24" rx="12"/>
+      <rect x="100" y="12" width="64" height="24" rx="12"/>
+      <rect x="172" y="12" width="64" height="24" rx="12"/>
+      <rect x="244" y="12" width="64" height="24" rx="12"/>
+      <rect x="316" y="12" width="64" height="24" rx="12"/>
+      <rect x="388" y="12" width="64" height="24" rx="12"/>
+    </g>
+
+    <rect class="a" style="animation-name:steps"
+          x="28" y="12" width="64" height="24" rx="12"
+          fill="#00ff51" fill-opacity=".15" stroke="#00ff51"/>
+
+    <g fill="#e2eeec">
+      <text x="60" y="28">1 Wet</text>
+      <text x="132" y="28">2 Soap</text>
+      <text x="204" y="28">3 Scrub</text>
+      <text x="276" y="28">4 Rinse</text>
+      <text x="348" y="28">5 Dry</text>
+      <text x="420" y="28">6 Clean</text>
+    </g>
+  </g>
+
+  <circle cx="429" cy="75" r="23" fill="#142229" stroke="#00ff51"/>
+  <text x="429" y="80" text-anchor="middle"
+        fill="#d9ffe5" font-size="15" font-weight="700">
+    20s
+  </text>
+
+  <g class="a" style="animation-name:done">
+    <rect x="18" y="230" width="200" height="28" rx="14"
+          fill="#102e1c" stroke="#00ff51"/>
+    <text x="118" y="248" text-anchor="middle"
+          font-size="13" font-weight="700" fill="#d9ffe5">
+      Clean hands, clean space
+    </text>
+  </g>
+
+</svg>
+
+</div>
+
+<figcaption>
+  <h3><span class="num">2</span>Personal Hygiene</h3>
+  <p>
+    Maintain excellent personal hygiene and keep
+    Nader's home clean and hygienic.
+  </p>
+</figcaption>
+
+</figure>
+
+<!-- ANIMATION 3 -->
+
+<figure class="info-card">
+
+<div class="scene paused">
+
+<svg viewBox="0 0 480 270"
+     role="img"
+     aria-label="Privacy, consent and respectful grooming">
+
+  <use href="#room" width="480" height="270"/>
+  <use href="#window" x="26" y="43" width="89" height="90"/>
+
+  <g class="a" style="animation-name:blind;transform-origin:70px 45px">
+    <rect x="29" y="46" width="83" height="83" fill="#d9cfbd"/>
+    <path d="M29 58H112M29 70H112M29 82H112M29 94H112M29 106H112"
+          stroke="#b6ad9c" stroke-width="2"/>
+  </g>
+
+  <rect x="408" y="60" width="67" height="146" rx="3" fill="#8a6a54"/>
+
+  <rect x="420" y="141" width="44" height="26" rx="5"
+        fill="#102e1c" stroke="#00ff51"/>
+
+  <text x="442" y="157" text-anchor="middle"
+        font-size="9" fill="#d9ffe5" font-weight="700">
+    PRIVATE
+  </text>
+
+  <use href="#nader" x="38" y="85" width="150" height="165"/>
+  <use href="#worker" x="285" y="70" width="105" height="170"/>
+
+  <path d="M197 186V236M182 236H212"
+        stroke="#8399a4" stroke-width="5"/>
+
+  <rect x="172" y="179" width="165" height="8" rx="3" fill="#b9cbd2"/>
+  <rect x="179" y="170" width="107" height="9" rx="3" fill="#e8f0ec"/>
+
+  <path d="M157 162L256 169"
+        stroke="#e2a882" stroke-width="14" stroke-linecap="round"/>
+
+  <g class="a" style="animation-name:groom">
+    <path d="M320 142L277 158"
+          stroke="#e6b08c" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="277" cy="158" r="7" fill="#9fc0ff"/>
+    <rect x="264" y="151" width="24" height="13" rx="6" fill="#f1f7f8"/>
+    <rect x="260" y="150" width="9" height="15" rx="3" fill="#7fd4c8"/>
+  </g>
+
+  <g class="a" style="animation-name:speech1">
+    <rect x="260" y="45" width="200" height="31" rx="15" fill="#eef4f6"/>
+    <text x="360" y="65" text-anchor="middle"
+          font-size="14" fill="#19353f" font-weight="700">
+      Is it okay if I start?
+    </text>
+  </g>
+
+  <g class="a" style="animation-name:speech2">
+    <rect x="18" y="45" width="195" height="31" rx="15" fill="#c7f7d8"/>
+    <text x="115" y="65" text-anchor="middle"
+          font-size="14" fill="#11351f" font-weight="700">
+      Yes, go ahead.
+    </text>
+  </g>
+
+  <g font-size="13" font-weight="700" text-anchor="middle">
+    <rect x="40" y="12" width="125" height="26" rx="13"
+          fill="#102e1c" stroke="#00ff51"/>
+    <rect x="177" y="12" width="125" height="26" rx="13"
+          fill="#102e1c" stroke="#00ff51"/>
+    <rect x="314" y="12" width="125" height="26" rx="13"
+          fill="#102e1c" stroke="#00ff51"/>
+    <g fill="#d9ffe5">
+      <text x="102" y="29">Privacy</text>
+      <text x="239" y="29">Consent</text>
+      <text x="376" y="29">Respect</text>
+    </g>
+  </g>
+
+</svg>
+
+</div>
+
+<figcaption>
+  <h3><span class="num">3</span>Personal Care &amp; Grooming</h3>
+  <p>
+    Occasional grooming assistance, including waxing or
+    epilating, may be needed. Privacy, consent, and
+    professional boundaries always matter.
+  </p>
+</figcaption>
+
+</figure>
+
+<!-- ANIMATION 4 -->
+
+<figure class="info-card">
+
+<div class="scene paused">
+
+<svg viewBox="0 0 480 270"
+     role="img"
+     aria-label="Gentle stretching and massage following the agreed care plan">
+
+  <use href="#room" width="480" height="270"/>
+  <use href="#window" x="18" y="40" width="84" height="94"/>
+  <use href="#plant" x="374" y="61" width="31" height="55"/>
+  <rect x="365" y="116" width="95" height="6" rx="3" fill="#7d939d"/>
+
+  <use href="#nader" x="55" y="74" width="155" height="175"/>
+
+  <path d="M148 194L211 194"
+        stroke="#34466b" stroke-width="18" stroke-linecap="round"/>
+
+  <g class="a" style="animation-name:stretch;transform-origin:211px 194px">
+    <path d="M211 194L216 236"
+          stroke="#e2a882" stroke-width="14" stroke-linecap="round"/>
+    <ellipse cx="214" cy="215" rx="8" ry="16" fill="#ffad61" opacity=".35"/>
+    <path d="M213 231Q215 240 228 240H239Q244 235 236 232Z"
+          fill="#e9eef0"/>
+  </g>
+
+  <g transform="translate(267 105)">
+    <path d="M41 109L20 135H75"
+          stroke="#304760" stroke-width="14"
+          fill="none" stroke-linecap="round"/>
+    <path d="M19 108L22 51Q40 35 60 51L64 108Z" fill="#22b573"/>
+    <rect x="35" y="34" width="12" height="14" fill="#d39a76"/>
+    <circle cx="41" cy="22" r="18" fill="#e6b08c"/>
+    <path d="M23 21Q22-3 43 0Q63 2 61 20Q48 10 37 11Z"
+          fill="#3a2a22"/>
+    <circle cx="31" cy="22" r="2" fill="#1b1f24"/>
+    <circle cx="39" cy="22" r="2" fill="#1b1f24"/>
+    <path d="M24 59L-20 88L-48 93"
+          stroke="#e6b08c" stroke-width="10"
+          fill="none" stroke-linecap="round"/>
+  </g>
+
+  <g class="a" style="animation-name:massage"
+     fill="none" stroke="#00ff51" stroke-width="2">
+    <ellipse cx="215" cy="213" rx="18" ry="24"/>
+    <ellipse cx="215" cy="213" rx="25" ry="31" opacity=".5"/>
+  </g>
+
+  <rect x="335" y="12" width="132" height="40" rx="8" fill="#0e181d"/>
+
+  <text x="401" y="27" text-anchor="middle"
+        font-size="10" fill="#b4c9d0" font-weight="700">
+    MUSCLE TENSION
+  </text>
+
+  <rect x="347" y="34" width="108" height="8" rx="4" fill="#344750"/>
+
+  <rect class="a"
+        style="animation-name:tension;transform-origin:347px 0"
+        x="347" y="34" width="108" height="8" rx="4" fill="#00ff51"/>
+
+  <g class="a" style="animation-name:speech1">
+    <rect x="254" y="57" width="198" height="29" rx="14" fill="#eef4f6"/>
+    <text x="353" y="76" text-anchor="middle"
+          fill="#203943" font-size="13" font-weight="700">
+      Tell me when to stop.
+    </text>
+  </g>
+
+  <g class="a" style="animation-name:speech2">
+    <rect x="18" y="39" width="193" height="29" rx="14" fill="#c7f7d8"/>
+    <text x="115" y="58" text-anchor="middle"
+          fill="#11351f" font-size="13" font-weight="700">
+      That's good, hold there.
+    </text>
+  </g>
+
+</svg>
+
+</div>
+
+<figcaption>
+  <h3><span class="num">4</span>Stretching &amp; Massage</h3>
+  <p>
+    Gentle leg stretching and massage may help with muscle
+    discomfort and spasms. Follow Nader's instructions
+    and agreed care plan.
+  </p>
+</figcaption>
+
+</figure>
+
+<!-- ANIMATION 5 -->
+
+<figure class="info-card">
+
+<div class="scene paused">
+
+<svg viewBox="0 0 480 270"
+     role="img"
+     aria-label="A support worker asks Nader how to prepare his coffee">
+
+  <use href="#room" width="480" height="270"/>
+
+  <circle cx="238" cy="56" r="82" fill="url(#glow)" opacity=".4"/>
+  <path d="M238 0V27" stroke="#8b9ca4" stroke-width="3"/>
+  <path d="M220 45H256L249 27H227Z" fill="#efc980"/>
+
+  <use href="#plant" x="243" y="129" width="52" height="80"/>
+
+  <rect x="363" y="158" width="117" height="48" fill="#354953"/>
+  <rect x="358" y="151" width="122" height="9" rx="3" fill="#c7d5dc"/>
+
+  <rect x="382" y="73" width="65" height="79" rx="9"
+        fill="#2a3036" stroke="#54616a"/>
+  <rect x="390" y="82" width="49" height="27" rx="5" fill="#10171c"/>
+  <circle cx="401" cy="95" r="6" fill="#71492e"/>
+  <circle cx="415" cy="95" r="6" fill="#e5eee9"/>
+  <circle cx="429" cy="95" r="6" fill="#3c4e55"/>
+  <rect x="408" y="112" width="14" height="7" rx="3" fill="#82939a"/>
+
+  <path class="a" style="animation-name:pour"
+        d="M415 120V133" stroke="#754522" stroke-width="4"/>
+
+  <use href="#nader" x="32" y="84" width="145" height="165"/>
+
+  <g class="a" style="animation-name:carry">
+    <use href="#worker" x="280" y="71" width="100" height="170"/>
+    <use href="#mug" x="395" y="124" width="35" height="30"/>
+  </g>
+
+  <g class="a" style="animation-name:speech1">
+    <rect x="215" y="22" width="252" height="34" rx="17" fill="#eef4f6"/>
+    <text x="341" y="44" text-anchor="middle"
+          font-size="14" fill="#203943" font-weight="700">
+      How do you like your coffee?
+    </text>
+  </g>
+
+  <g class="a" style="animation-name:speech2">
+    <rect x="12" y="19" width="215" height="55" rx="15" fill="#c7f7d8"/>
+    <text x="119" y="41" text-anchor="middle"
+          fill="#11351f" font-size="13.5" font-weight="700">
+      Strong, a splash of milk,
+    </text>
+    <text x="119" y="60" text-anchor="middle"
+          fill="#11351f" font-size="13.5" font-weight="700">
+      and no sugar, please.
+    </text>
+  </g>
+
+  <g class="a" style="animation-name:done">
+    <rect x="241" y="236" width="224" height="26" rx="13"
+          fill="#102e1c" stroke="#00ff51"/>
+    <text x="353" y="253" text-anchor="middle"
+          font-size="13" fill="#d9ffe5" font-weight="700">
+      Asked, listened, got it right
+    </text>
+  </g>
+
+</svg>
+
+</div>
+
+<figcaption>
+  <h3><span class="num">5</span>Communication</h3>
+  <p>
+    Never hesitate to ask questions. Clear, honest
+    communication makes everything easier.
+  </p>
+</figcaption>
+
+</figure>
+
+<!-- ANIMATION 6 -->
+
+<figure class="info-card">
+
+<div class="scene paused">
+
+<svg viewBox="0 0 480 270"
+     role="img"
+     aria-label="Keeping Nader's home tidy and respecting his belongings">
+
+  <use href="#room" width="480" height="270"/>
+  <use href="#window" x="17" y="39" width="82" height="82"/>
+
+  <circle class="a" style="animation-name:lamp"
+          cx="365" cy="90" r="95" fill="url(#glow)"/>
+
+  <path d="M365 86V209" stroke="#84979f" stroke-width="4"/>
+  <path d="M345 88H385L377 58H353Z" fill="#eac37d"/>
+
+  <rect x="398" y="50" width="66" height="157" rx="3" fill="#594639"/>
+  <rect x="404" y="55" width="54" height="145" fill="#352923"/>
+  <path d="M404 96H458M404 140H458M404 181H458"
+        stroke="#806753" stroke-width="5"/>
+
+  <g>
+    <rect x="409" y="67" width="10" height="29" fill="#5aa9e6"/>
+    <rect x="420" y="73" width="10" height="23" fill="#e8c27a"/>
+    <rect x="431" y="65" width="11" height="31" fill="#4fbf7a"/>
+    <rect x="443" y="70" width="11" height="26" fill="#b58ad6"/>
+    <rect x="409" y="110" width="10" height="30" fill="#e8c27a"/>
+    <rect x="420" y="114" width="10" height="26" fill="#7fd4c8"/>
+  </g>
+
+  <rect x="206" y="114" width="151" height="66" rx="11" fill="#406473"/>
+  <rect x="199" y="168" width="165" height="26" rx="8" fill="#4f7789"/>
+  <rect x="190" y="145" width="22" height="48" rx="8" fill="#456877"/>
+  <rect x="352" y="145" width="22" height="48" rx="8" fill="#456877"/>
+
+  <g class="a" style="animation-name:cushion;transform-origin:245px 151px">
+    <rect x="229" y="135" width="32" height="32" rx="7" fill="#e8c27a"/>
+    <path d="M235 141L255 161M255 141L235 161" stroke="#c39b53"/>
+  </g>
+
+  <g class="a" style="animation-name:cushion;transform-origin:321px 151px">
+    <rect x="305" y="135" width="32" height="32" rx="7" fill="#7fd4c8"/>
+    <circle cx="321" cy="151" r="7" fill="none" stroke="#4ba99b"/>
+  </g>
+
+  <rect x="221" y="192" width="103" height="7" rx="3" fill="#a28465"/>
+  <path d="M229 199V234M316 199V234" stroke="#82664d" stroke-width="5"/>
+
+  <g class="a" style="animation-name:book">
+    <rect x="263" y="182" width="11" height="10" rx="1" fill="#d05a5a"/>
+  </g>
+
+  <use href="#nader" x="15" y="91" width="141" height="158"/>
+  <use href="#worker" x="278" y="66" width="95" height="170"/>
+
+  <rect x="143" y="180" width="49" height="6" rx="2" fill="#a28465"/>
+  <path d="M149 186V230M186 186V230" stroke="#82664d" stroke-width="4"/>
+
+  <g class="a" style="animation-name:phone">
+    <rect x="302" y="161" width="22" height="10" rx="3"
+          fill="#121b22" stroke="#85949c"/>
+    <rect x="305" y="163" width="16" height="6" rx="1" fill="#417fa8"/>
+  </g>
+
+  <g class="a" style="animation-name:speech1">
+    <rect x="174" y="23" width="291" height="32" rx="16" fill="#eef4f6"/>
+    <text x="319" y="43" text-anchor="middle"
+          font-size="13.5" fill="#203943" font-weight="700">
+      Shall I put your phone by you?
+    </text>
+  </g>
+
+  <g class="a" style="animation-name:speech2">
+    <rect x="12" y="32" width="175" height="31" rx="15" fill="#c7f7d8"/>
+    <text x="99" y="52" text-anchor="middle"
+          font-size="13" fill="#11351f" font-weight="700">
+      Yes please, thanks!
+    </text>
+  </g>
+
+  <g class="a" style="animation-name:done">
+    <rect x="240" y="236" width="225" height="26" rx="13"
+          fill="#102e1c" stroke="#00ff51"/>
+    <text x="352" y="253" text-anchor="middle"
+          font-size="13" fill="#d9ffe5" font-weight="700">
+      Tidy, calm and welcoming
+    </text>
+  </g>
+
+</svg>
+
+</div>
+
+<figcaption>
+  <h3><span class="num">6</span>Respectful &amp; Comfortable Home</h3>
+  <p>
+    Treat Nader's home and belongings with care.
+    A tidy, calm, welcoming home helps everyone feel comfortable.
+  </p>
+</figcaption>
+
+</figure>
+
+</div>
+
+<p class="summary-note">
+  Nader appreciates support workers who are clean, respectful,
+  considerate, comfortable with personal care, and happy to
+  communicate openly.
+</p>
+
+</section>
+
+</section>
+
+</main>
+
+<script>
+
+"use strict";
+
+/* ==========================================
+   WEBSITE PASSWORD
+   This is a visual gate, not secure authentication.
+========================================== */
+
+const correctPassword = "1313";
+
+/* ==========================================
+   LOGIN DURATION: ONE HOUR
+========================================== */
+
+const sessionDuration = 60 * 60 * 1000;
+const sessionKey = "naderTutorialSessionExpiryV2";
+
+/* ==========================================
+   EDIT YOUR EIGHT VIDEOS HERE
+
+   Paste normal Google Drive sharing links.
+   Empty links display Video coming soon.
+========================================== */
+
+const videos = [
+
+  {
+    title: "Personal Care",
+    url: "https://drive.google.com/file/d/1_PB87L1Yps9JgZF0lf3wbN3k7C16MKdD/preview"
+  },
+
+  {
+    title: "Coffee Machine",
+    url: "https://drive.google.com/file/d/1ySDHsKWXPUvpzYmPg4ovQU8EvS0_cIH6/preview"
+  },
+
+  {
+    title: "Video 3",
+    url: ""
+  },
+
+  {
+    title: "Video 4",
+    url: ""
+  },
+
+  {
+    title: "Video 5",
+    url: ""
+  },
+
+  {
+    title: "Video 6",
+    url: ""
+  },
+
+  {
+    title: "Video 7",
+    url: ""
+  },
+
+  {
+    title: "Video 8",
+    url: ""
+  }
+
+];
+
+/* ==========================================
+   WEBSITE ELEMENTS
+========================================== */
+
+const login = document.getElementById("loginSection");
+const content = document.getElementById("videoSection");
+const passwordInput = document.getElementById("passwordInput");
+const errorMessage = document.getElementById("errorMessage");
+const videoGrid = document.getElementById("videoGrid");
+const logoutButton = document.getElementById("logoutButton");
+const sessionStatus = document.getElementById("sessionStatus");
+
+let countdownTimer = null;
+let memoryExpiry = 0;
+
+/* ==========================================
+   DISABLE RIGHT CLICK ON THE MAIN PAGE
+
+   Cross-origin iframe events cannot reliably
+   be controlled by the parent website.
+========================================== */
+
+function blockEvent(event) {
+
+  if (event.cancelable) {
+    event.preventDefault();
+  }
+
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+
+  return false;
+}
+
+window.addEventListener("contextmenu", blockEvent, {
+  capture: true,
+  passive: false
+});
+
+document.addEventListener("contextmenu", blockEvent, {
+  capture: true,
+  passive: false
+});
+
+window.addEventListener("mousedown", function(event) {
+
+  if (event.button === 2) {
+    blockEvent(event);
+  }
+
+}, {
+  capture: true,
+  passive: false
+});
+
+window.addEventListener("auxclick", function(event) {
+
+  if (event.button === 1 || event.button === 2) {
+    blockEvent(event);
+  }
+
+}, {
+  capture: true,
+  passive: false
+});
+
+document.oncontextmenu = function() {
+  return false;
+};
+
+/* DISABLE DRAGGING PAGE ELEMENTS */
+
+document.addEventListener("dragstart", blockEvent, true);
+
+/* DISABLE COPYING PAGE CONTENT */
+
+document.addEventListener("copy", blockEvent, true);
+document.addEventListener("cut", blockEvent, true);
+
+/* ==========================================
+   BLOCK COMMON KEYBOARD SHORTCUTS
+
+   These are deterrents only.
+   They cannot disable developer tools entirely.
+========================================== */
+
+window.addEventListener("keydown", function(event) {
+
+  const key = event.key.toUpperCase();
+  const control = event.ctrlKey || event.metaKey;
+
+  const blocked =
+    key === "F12" ||
+
+    key === "CONTEXTMENU" ||
+
+    (event.shiftKey && key === "F10") ||
+
+    (
+      control &&
+      event.shiftKey &&
+      ["I", "J", "C", "K"].includes(key)
+    ) ||
+
+    (
+      control &&
+      ["U", "S", "P"].includes(key)
+    );
+
+  if (blocked) {
+    blockEvent(event);
+  }
+
+}, true);
+
+/* ==========================================
+   CONVERT GOOGLE DRIVE AND YOUTUBE LINKS
+========================================== */
+
+function getEmbedUrl(value) {
+
+  if (!value || !value.trim()) {
+    return "";
+  }
+
+  try {
+
+    const url = new URL(value.trim());
+
+    if (url.protocol !== "https:") {
+      return "";
+    }
+
+    if (url.hostname === "drive.google.com") {
+
+      const match = url.pathname.match(
+        /\/file\/d\/([a-zA-Z0-9_-]+)/
+      );
+
+      const id = match
+        ? match[1]
+        : url.searchParams.get("id");
+
+      if (!id || !/^[a-zA-Z0-9_-]+$/.test(id)) {
+        return "";
       }
 
+      const embed = new URL(
+        "https://drive.google.com/file/d/" + id + "/preview"
+      );
+
+      const resourceKey =
+        url.searchParams.get("resourcekey");
+
+      if (resourceKey) {
+        embed.searchParams.set("resourcekey", resourceKey);
+      }
+
+      return embed.href;
+    }
+
+    const youtubeHosts = [
+      "youtube.com",
+      "www.youtube.com",
+      "m.youtube.com",
+      "youtu.be",
+      "www.youtube-nocookie.com"
     ];
 
+    if (youtubeHosts.includes(url.hostname)) {
 
-    /* ==========================================
-       WEBSITE ELEMENTS
-    ========================================== */
+      let id = "";
 
-    const login = document.getElementById("loginSection");
-    const content = document.getElementById("videoSection");
-    const passwordInput = document.getElementById("passwordInput");
-    const errorMessage = document.getElementById("errorMessage");
-    const videoGrid = document.getElementById("videoGrid");
-    const logoutButton = document.getElementById("logoutButton");
-    const sessionStatus = document.getElementById("sessionStatus");
+      if (url.hostname === "youtu.be") {
 
-    let sessionTimer = null;
-    let countdownTimer = null;
-    let memoryExpiry = 0;
+        id = url.pathname.split("/")[1];
 
+      } else if (
+        url.pathname.startsWith("/shorts/") ||
+        url.pathname.startsWith("/embed/")
+      ) {
 
-    /* ==========================================
-       CONVERT GOOGLE DRIVE LINKS AUTOMATICALLY
-
-       Also supports normal YouTube links.
-    ========================================== */
-
-    function getEmbedUrl(value) {
-
-      if (!value || !value.trim()) {
-        return "";
-      }
-
-      try {
-
-        const url = new URL(value.trim());
-
-        if (url.protocol !== "https:") {
-          return "";
-        }
-
-        if (url.hostname === "drive.google.com") {
-
-          const match = url.pathname.match(
-            /\/file\/d\/([a-zA-Z0-9_-]+)/
-          );
-
-          const id = match
-            ? match[1]
-            : url.searchParams.get("id");
-
-          if (!id || !/^[a-zA-Z0-9_-]+$/.test(id)) {
-            return "";
-          }
-
-          const embed = new URL(
-            "https://drive.google.com/file/d/" +
-            id +
-            "/preview"
-          );
-
-          const resourceKey = url.searchParams.get("resourcekey");
-
-          if (resourceKey) {
-            embed.searchParams.set("resourcekey", resourceKey);
-          }
-
-          return embed.href;
-        }
-
-        if (
-          url.hostname === "youtube.com" ||
-          url.hostname === "www.youtube.com" ||
-          url.hostname === "m.youtube.com" ||
-          url.hostname === "youtu.be"
-        ) {
-
-          let id = "";
-
-          if (url.hostname === "youtu.be") {
-
-            id = url.pathname.split("/")[1];
-
-          } else if (
-            url.pathname.startsWith("/shorts/") ||
-            url.pathname.startsWith("/embed/")
-          ) {
-
-            id = url.pathname.split("/")[2];
-
-          } else {
-
-            id = url.searchParams.get("v");
-
-          }
-
-          if (!id || !/^[a-zA-Z0-9_-]{11}$/.test(id)) {
-            return "";
-          }
-
-          return "https://www.youtube-nocookie.com/embed/" + id;
-
-        }
-
-        if (url.hostname === "www.youtube-nocookie.com") {
-
-          const id = url.pathname.split("/")[2];
-
-          if (
-            url.pathname.startsWith("/embed/") &&
-            /^[a-zA-Z0-9_-]{11}$/.test(id || "")
-          ) {
-
-            return "https://www.youtube-nocookie.com/embed/" + id;
-
-          }
-
-        }
-
-        return "";
-
-      } catch (error) {
-
-        return "";
-
-      }
-
-    }
-
-
-    /* ==========================================
-       BUILD ALL EIGHT VIDEO BOXES
-    ========================================== */
-
-    function renderVideos() {
-
-      videoGrid.replaceChildren();
-
-      videos.forEach((video, index) => {
-
-        const container = document.createElement("article");
-        container.className = "video-container";
-
-        const title = document.createElement("h2");
-        title.className = "video-title";
-        title.textContent = video.title;
-
-        container.appendChild(title);
-
-        const embedUrl = getEmbedUrl(video.url);
-
-        if (embedUrl) {
-
-          const frame = document.createElement("iframe");
-
-          frame.className = "video-frame";
-          frame.title = video.title + " Tutorial";
-          frame.src = embedUrl;
-          frame.loading = "lazy";
-          frame.allow = "autoplay; fullscreen; encrypted-media; picture-in-picture";
-
-          frame.setAttribute("allowfullscreen", "");
-
-          container.appendChild(frame);
-
-        } else {
-
-          const placeholder = document.createElement("div");
-          placeholder.className = "video-placeholder";
-
-          const playIcon = document.createElement("span");
-          playIcon.className = "play-icon";
-          playIcon.textContent = "▶";
-          playIcon.setAttribute("aria-hidden", "true");
-
-          const message = document.createElement("span");
-
-          message.textContent = video.url.trim()
-            ? "Invalid video link"
-            : "Video coming soon";
-
-          placeholder.appendChild(playIcon);
-          placeholder.appendChild(message);
-
-          container.appendChild(placeholder);
-
-        }
-
-        const number = document.createElement("div");
-
-        number.className = "video-number";
-
-        number.textContent =
-          "Tutorial " + String(index + 1).padStart(2, "0");
-
-        container.appendChild(number);
-
-        videoGrid.appendChild(container);
-
-      });
-
-    }
-
-
-    /* ==========================================
-       SAVE AND READ THE LOGIN SESSION
-
-       localStorage keeps the session active
-       after closing or refreshing the browser.
-    ========================================== */
-
-    function saveSession(expiry) {
-
-      memoryExpiry = expiry;
-
-      try {
-
-        localStorage.setItem(
-          sessionKey,
-          String(expiry)
-        );
-
-      } catch (error) {
-
-        console.warn("Persistent session storage unavailable.");
-
-      }
-
-    }
-
-    function getSessionExpiry() {
-
-      try {
-
-        const value = localStorage.getItem(sessionKey);
-
-        return value ? Number(value) : 0;
-
-      } catch (error) {
-
-        return memoryExpiry;
-
-      }
-
-    }
-
-    function clearSession() {
-
-      memoryExpiry = 0;
-
-      try {
-
-        localStorage.removeItem(sessionKey);
-
-      } catch (error) {}
-
-    }
-
-    function isSessionValid() {
-
-      const expiry = getSessionExpiry();
-
-      return Number.isFinite(expiry) &&
-        expiry > Date.now();
-
-    }
-
-
-    /* ==========================================
-       LOGIN COUNTDOWN
-    ========================================== */
-
-    function updateCountdown() {
-
-      const expiry = getSessionExpiry();
-
-      const remaining = Math.max(
-        0,
-        expiry - Date.now()
-      );
-
-      if (remaining <= 0) {
-
-        logout(true);
-        return;
-
-      }
-
-      const totalSeconds = Math.ceil(remaining / 1000);
-
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-
-      sessionStatus.textContent =
-        "Logged in • Session expires in " +
-        minutes +
-        ":" +
-        String(seconds).padStart(2, "0");
-
-    }
-
-
-    /* ==========================================
-       SHOW THE PROTECTED WEBSITE
-    ========================================== */
-
-    function showWebsite() {
-
-      const expiry = getSessionExpiry();
-
-      if (!Number.isFinite(expiry) || expiry <= Date.now()) {
-
-        logout(true);
-        return;
-
-      }
-
-      const wasHidden = content.hidden;
-
-      login.hidden = true;
-      content.hidden = false;
-
-      errorMessage.textContent = "";
-      passwordInput.value = "";
-
-      if (wasHidden || !videoGrid.children.length) {
-
-        renderVideos();
-
-      }
-
-      clearTimeout(sessionTimer);
-      clearInterval(countdownTimer);
-
-      sessionTimer = setTimeout(
-        checkSession,
-        Math.max(0, expiry - Date.now())
-      );
-
-      countdownTimer = setInterval(
-        updateCountdown,
-        1000
-      );
-
-      updateCountdown();
-
-    }
-
-
-    /* ==========================================
-       LOGOUT
-
-       Stops all videos and returns the user
-       to the password page.
-    ========================================== */
-
-    function logout(expired = false) {
-
-      clearSession();
-
-      clearTimeout(sessionTimer);
-      clearInterval(countdownTimer);
-
-      sessionTimer = null;
-      countdownTimer = null;
-
-      videoGrid.replaceChildren();
-
-      content.hidden = true;
-      login.hidden = false;
-
-      passwordInput.value = "";
-
-      errorMessage.textContent = expired
-        ? "Your session has expired. Please enter the password again."
-        : "";
-
-      if (!document.hidden) {
-
-        window.scrollTo(0, 0);
-        passwordInput.focus();
-
-      }
-
-    }
-
-
-    /* ==========================================
-       CHECK THE EXISTING SESSION
-
-       Refreshing the page does not reset the
-       one-hour timer.
-    ========================================== */
-
-    function checkSession() {
-
-      if (isSessionValid()) {
-
-        showWebsite();
+        id = url.pathname.split("/")[2];
 
       } else {
 
-        const previouslyLoggedIn = !content.hidden;
-        const hadSession = getSessionExpiry() > 0;
-
-        if (previouslyLoggedIn || hadSession) {
-
-          logout(true);
-
-        } else {
-
-          content.hidden = true;
-          login.hidden = false;
-
-        }
+        id = url.searchParams.get("v");
 
       }
 
+      if (!id || !/^[a-zA-Z0-9_-]{11}$/.test(id)) {
+        return "";
+      }
+
+      return "https://www.youtube-nocookie.com/embed/" + id;
     }
 
+    return "";
 
-    /* ==========================================
-       PASSWORD SUBMISSION
-    ========================================== */
+  } catch (error) {
 
-    login.addEventListener("submit", function(event) {
+    return "";
 
-      event.preventDefault();
+  }
+}
 
-      if (passwordInput.value !== correctPassword) {
+/* ==========================================
+   WEBSITE CONTROLLED FULLSCREEN
+========================================== */
 
-        errorMessage.textContent =
-          "Wrong password. Please try again.";
+async function openFullscreen(wrapper) {
 
-        passwordInput.value = "";
-        passwordInput.focus();
+  try {
 
-        return;
+    if (wrapper.requestFullscreen) {
 
-      }
+      await wrapper.requestFullscreen();
 
-      const expiry = Date.now() + sessionDuration;
+    } else if (wrapper.webkitRequestFullscreen) {
 
-      saveSession(expiry);
-
-      showWebsite();
-
-    });
-
-
-    /* ==========================================
-       MANUAL LOGOUT BUTTON
-    ========================================== */
-
-    logoutButton.addEventListener("click", function() {
-
-      logout(false);
-
-    });
-
-
-    /* ==========================================
-       RESTORE SESSION WHEN THE WEBSITE OPENS
-    ========================================== */
-
-    checkSession();
-
-
-    /* ==========================================
-       CHECK SESSION WHEN RETURNING TO THE TAB
-       OR RESTORING A PREVIOUS PAGE
-    ========================================== */
-
-    window.addEventListener("pageshow", checkSession);
-
-    window.addEventListener("focus", checkSession);
-
-    document.addEventListener("visibilitychange", function() {
-
-      document.body.classList.toggle(
-        "tab-hidden",
-        document.hidden
-      );
-
-      if (!document.hidden) {
-
-        checkSession();
-
-      }
-
-    });
-
-
-    /* ==========================================
-       SYNCHRONISE LOGIN BETWEEN BROWSER TABS
-    ========================================== */
-
-    window.addEventListener("storage", function(event) {
-
-      if (
-        event.key === sessionKey ||
-        event.key === null
-      ) {
-
-        checkSession();
-
-      }
-
-    });
-
-
-    /* ==========================================
-       PLAY ANIMATIONS ONLY WHEN VISIBLE
-    ========================================== */
-
-    const scenes = document.querySelectorAll(".scene");
-
-    if ("IntersectionObserver" in window) {
-
-      const observer = new IntersectionObserver(
-        function(entries) {
-
-          entries.forEach(function(entry) {
-
-            entry.target.classList.toggle(
-              "paused",
-              !entry.isIntersecting
-            );
-
-          });
-
-        },
-        {
-          threshold: 0.15
-        }
-      );
-
-      scenes.forEach(function(scene) {
-
-        observer.observe(scene);
-
-      });
+      wrapper.webkitRequestFullscreen();
 
     } else {
 
-      scenes.forEach(function(scene) {
+      alert(
+        "Website fullscreen is not supported by this browser."
+      );
 
-        scene.classList.remove("paused");
+    }
+
+  } catch (error) {
+
+    console.warn("Fullscreen unavailable:", error);
+
+  }
+}
+
+async function closeFullscreen() {
+
+  try {
+
+    if (document.fullscreenElement) {
+
+      await document.exitFullscreen();
+
+    } else if (document.webkitFullscreenElement) {
+
+      document.webkitExitFullscreen();
+
+    }
+
+  } catch (error) {}
+
+}
+
+/* ==========================================
+   BUILD VIDEO BOXES
+========================================== */
+
+function renderVideos() {
+
+  videoGrid.replaceChildren();
+
+  videos.forEach(function(video, index) {
+
+    const container = document.createElement("article");
+    container.className = "video-container";
+
+    const title = document.createElement("h2");
+    title.className = "video-title";
+    title.textContent = video.title;
+
+    container.appendChild(title);
+
+    const embedUrl = getEmbedUrl(video.url);
+
+    let playerWrapper = null;
+
+    if (embedUrl) {
+
+      const isGoogleDrive =
+        new URL(embedUrl).hostname === "drive.google.com";
+
+      playerWrapper = document.createElement("div");
+      playerWrapper.className = "player-wrapper";
+
+      const frame = document.createElement("iframe");
+
+      frame.className = "video-frame";
+      frame.title = video.title + " Tutorial";
+      frame.loading = "lazy";
+
+      frame.setAttribute(
+        "referrerpolicy",
+        "strict-origin-when-cross-origin"
+      );
+
+      if (isGoogleDrive) {
+
+        /*
+          Restrict pop-ups, top-level navigation
+          and ordinary iframe-initiated downloads.
+
+          This does not prevent browser extensions
+          from accessing the media stream.
+        */
+
+        frame.setAttribute(
+          "sandbox",
+          "allow-scripts allow-same-origin allow-presentation"
+        );
+
+        frame.setAttribute(
+          "allow",
+          "autoplay; encrypted-media; fullscreen 'none'; picture-in-picture 'none'"
+        );
+
+      } else {
+
+        frame.setAttribute(
+          "allow",
+          "autoplay; encrypted-media; fullscreen 'none'"
+        );
+
+      }
+
+      frame.src = embedUrl;
+
+      playerWrapper.appendChild(frame);
+
+      /* Cover Google's top-right pop-out icon */
+
+      if (isGoogleDrive) {
+
+        const blocker = document.createElement("div");
+
+        blocker.className = "drive-blocker";
+
+        blocker.setAttribute("aria-hidden", "true");
+
+        [
+          "contextmenu",
+          "mousedown",
+          "mouseup",
+          "click",
+          "dblclick",
+          "auxclick",
+          "dragstart"
+        ].forEach(function(type) {
+
+          blocker.addEventListener(type, blockEvent, {
+            capture: true,
+            passive: false
+          });
+
+        });
+
+        playerWrapper.appendChild(blocker);
+
+      }
+
+      /* Visible watermark is a deterrent only */
+
+      const watermark = document.createElement("div");
+
+      watermark.className = "video-watermark";
+      watermark.textContent = "PRIVATE • NADER TUTORIALS";
+      watermark.setAttribute("aria-hidden", "true");
+
+      playerWrapper.appendChild(watermark);
+
+      /* Exit fullscreen button */
+
+      const exitButton = document.createElement("button");
+
+      exitButton.type = "button";
+      exitButton.className = "exit-fullscreen";
+      exitButton.textContent = "Exit fullscreen";
+
+      exitButton.addEventListener(
+        "click",
+        closeFullscreen
+      );
+
+      playerWrapper.appendChild(exitButton);
+
+      container.appendChild(playerWrapper);
+
+    } else {
+
+      const placeholder = document.createElement("div");
+
+      placeholder.className = "video-placeholder";
+
+      const icon = document.createElement("span");
+
+      icon.className = "play-icon";
+      icon.textContent = "▶";
+      icon.setAttribute("aria-hidden", "true");
+
+      const message = document.createElement("span");
+
+      message.textContent = video.url.trim()
+        ? "Invalid video link"
+        : "Video coming soon";
+
+      placeholder.appendChild(icon);
+      placeholder.appendChild(message);
+
+      container.appendChild(placeholder);
+
+    }
+
+    const toolbar = document.createElement("div");
+
+    toolbar.className = "video-toolbar";
+
+    const number = document.createElement("span");
+
+    number.className = "video-number";
+
+    number.textContent =
+      "Tutorial " + String(index + 1).padStart(2, "0");
+
+    toolbar.appendChild(number);
+
+    if (
+      playerWrapper &&
+      (
+        document.fullscreenEnabled ||
+        document.webkitFullscreenEnabled
+      )
+    ) {
+
+      const fullscreenButton =
+        document.createElement("button");
+
+      fullscreenButton.type = "button";
+      fullscreenButton.className = "fullscreen-button";
+      fullscreenButton.textContent = "⛶ Fullscreen";
+
+      fullscreenButton.addEventListener("click", function() {
+
+        if (isSessionValid()) {
+
+          openFullscreen(playerWrapper);
+
+        } else {
+
+          logout(true);
+
+        }
 
       });
 
-    }
-
-
-    /* ==========================================
-       REDUCED MOTION SETTINGS
-    ========================================== */
-
-    function allowMotion() {
-
-      document.body.classList.add("motion-ok");
+      toolbar.appendChild(fullscreenButton);
 
     }
+
+    container.appendChild(toolbar);
+    videoGrid.appendChild(container);
+
+  });
+
+}
+
+/* ==========================================
+   PERSISTENT LOGIN STORAGE
+========================================== */
+
+function saveSession(expiry) {
+
+  memoryExpiry = expiry;
+
+  try {
+
+    localStorage.setItem(sessionKey, String(expiry));
+
+  } catch (error) {
+
+    console.warn(
+      "Persistent login unavailable in this browser."
+    );
+
+  }
+
+}
+
+function getSessionExpiry() {
+
+  try {
+
+    const value = localStorage.getItem(sessionKey);
+
+    return value ? Number(value) : 0;
+
+  } catch (error) {
+
+    return memoryExpiry;
+
+  }
+
+}
+
+function clearSession() {
+
+  memoryExpiry = 0;
+
+  try {
+
+    localStorage.removeItem(sessionKey);
+
+  } catch (error) {}
+
+}
+
+function isSessionValid() {
+
+  const expiry = getSessionExpiry();
+
+  return Number.isFinite(expiry) &&
+         expiry > Date.now();
+
+}
+
+/* ==========================================
+   SESSION COUNTDOWN
+========================================== */
+
+function updateCountdown() {
+
+  const expiry = getSessionExpiry();
+
+  if (!Number.isFinite(expiry) || expiry <= Date.now()) {
+
+    logout(true);
+    return;
+
+  }
+
+  const totalSeconds = Math.ceil(
+    (expiry - Date.now()) / 1000
+  );
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  sessionStatus.textContent =
+    "Logged in • Session expires in " +
+    minutes + ":" +
+    String(seconds).padStart(2, "0");
+
+}
+
+/* ==========================================
+   SHOW WEBSITE
+========================================== */
+
+function showWebsite() {
+
+  if (!isSessionValid()) {
+
+    logout(true);
+    return;
+
+  }
+
+  const wasHidden = content.hidden;
+
+  login.hidden = true;
+  content.hidden = false;
+
+  errorMessage.textContent = "";
+  passwordInput.value = "";
+
+  if (wasHidden || !videoGrid.children.length) {
+
+    renderVideos();
+
+  }
+
+  clearInterval(countdownTimer);
+
+  countdownTimer = setInterval(
+    updateCountdown,
+    1000
+  );
+
+  updateCountdown();
+
+}
+
+/* ==========================================
+   LOGOUT AND STOP VIDEO PLAYBACK
+========================================== */
+
+function logout(expired = false) {
+
+  clearSession();
+
+  clearInterval(countdownTimer);
+  countdownTimer = null;
+
+  closeFullscreen();
+
+  videoGrid.replaceChildren();
+
+  content.hidden = true;
+  login.hidden = false;
+
+  passwordInput.value = "";
+
+  errorMessage.textContent = expired
+    ? "Your session has expired. Please enter the password again."
+    : "";
+
+  if (!document.hidden) {
+
+    window.scrollTo(0, 0);
+    passwordInput.focus();
+
+  }
+
+}
+
+/* ==========================================
+   CHECK SESSION
+========================================== */
+
+function checkSession() {
+
+  if (isSessionValid()) {
+
+    showWebsite();
+
+  } else if (!content.hidden || getSessionExpiry() > 0) {
+
+    logout(true);
+
+  } else {
+
+    content.hidden = true;
+    login.hidden = false;
+
+  }
+
+}
+
+/* ==========================================
+   PASSWORD SUBMISSION
+========================================== */
+
+login.addEventListener("submit", function(event) {
+
+  event.preventDefault();
+
+  if (passwordInput.value !== correctPassword) {
+
+    errorMessage.textContent =
+      "Wrong password. Please try again.";
+
+    passwordInput.value = "";
+    passwordInput.focus();
+
+    return;
+
+  }
+
+  saveSession(Date.now() + sessionDuration);
+
+  showWebsite();
+
+});
+
+/* MANUAL LOGOUT */
+
+logoutButton.addEventListener("click", function() {
+
+  logout(false);
+
+});
+
+/* RESTORE LOGIN AFTER REFRESH OR REOPENING */
+
+checkSession();
+
+window.addEventListener("pageshow", checkSession);
+window.addEventListener("focus", checkSession);
+
+/* SYNC LOGIN BETWEEN TABS */
+
+window.addEventListener("storage", function(event) {
+
+  if (event.key === sessionKey || event.key === null) {
+
+    checkSession();
+
+  }
+
+});
+
+/* CHECK SESSION WHEN RETURNING TO WEBSITE */
+
+document.addEventListener("visibilitychange", function() {
+
+  document.body.classList.toggle(
+    "tab-hidden",
+    document.hidden
+  );
+
+  if (!document.hidden) {
+
+    checkSession();
+
+  }
+
+});
+
+/* ==========================================
+   ANIMATION PERFORMANCE
+========================================== */
+
+const scenes = document.querySelectorAll(".scene");
+
+if ("IntersectionObserver" in window) {
+
+  const observer = new IntersectionObserver(
+    function(entries) {
+
+      entries.forEach(function(entry) {
+
+        entry.target.classList.toggle(
+          "paused",
+          !entry.isIntersecting
+        );
+
+      });
+
+    },
+    { threshold: 0.15 }
+  );
+
+  scenes.forEach(function(scene) {
+
+    observer.observe(scene);
+
+  });
+
+} else {
+
+  scenes.forEach(function(scene) {
+
+    scene.classList.remove("paused");
+
+  });
+
+}
+
+/* REDUCED MOTION */
+
+try {
+
+  if (localStorage.getItem("naderMotionOk") === "1") {
+
+    document.body.classList.add("motion-ok");
+
+  }
+
+} catch (error) {}
+
+document.getElementById("motionButton")
+  .addEventListener("click", function() {
+
+    document.body.classList.add("motion-ok");
 
     try {
 
-      if (localStorage.getItem("naderMotionOk") === "1") {
-
-        allowMotion();
-
-      }
+      localStorage.setItem("naderMotionOk", "1");
 
     } catch (error) {}
 
-    document
-      .getElementById("motionButton")
-      .addEventListener("click", function() {
+  });
 
-        allowMotion();
-
-        try {
-
-          localStorage.setItem("naderMotionOk", "1");
-
-        } catch (error) {}
-
-      });
-
-
-    /* ==========================================
-       BASIC COPYING DETERRENTS
-
-       These do not provide genuine protection
-       against copying, downloading or viewing
-       the website source code.
-    ========================================== */
-
-    document.addEventListener("contextmenu", function(event) {
-
-      event.preventDefault();
-
-    });
-
-    document.addEventListener("keydown", function(event) {
-
-      const key = event.key.toUpperCase();
-
-      if (
-        event.key === "F12" ||
-
-        (
-          event.ctrlKey &&
-          event.shiftKey &&
-          ["I", "J", "C"].includes(key)
-        ) ||
-
-        (
-          event.ctrlKey &&
-          key === "U"
-        )
-      ) {
-
-        event.preventDefault();
-
-      }
-
-    });
-
-  </script>
+</script>
 
 </body>
 </html>
